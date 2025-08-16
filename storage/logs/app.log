@@ -1,0 +1,11 @@
+[2025-08-16 07:46:24] Request: GET /
+[2025-08-16 07:46:24] Request: GET /health
+[2025-08-16 07:46:25] Request: GET /test-db
+[2025-08-16 07:46:25] Request: POST /test
+[2025-08-16 07:46:25] Test endpoint called with data: {"test":true,"timestamp":"2025-08-16T07:46:25+02:00","message":"Prueba desde script PHP"}
+[2025-08-16 07:46:26] Request: GET /estructura
+[2025-08-16 07:47:12] Request: GET /
+[2025-08-16 07:47:12] Request: GET /favicon.ico
+[2025-08-16 08:18:08] Request: GET /
+[2025-08-16 08:18:21] Request: GET /health
+[2025-08-16 08:18:34] Request: GET /test-db

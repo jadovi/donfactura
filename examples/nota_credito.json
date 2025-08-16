@@ -1,0 +1,39 @@
+{
+  "tipo_dte": 61,
+  "fecha_emision": "2024-01-20",
+  "emisor": {
+    "rut": "76543210-9",
+    "razon_social": "EMPRESA EMISORA LIMITADA",
+    "giro": "SERVICIOS DE CONSULTORÍA EN TECNOLOGÍA",
+    "direccion": "AV. PROVIDENCIA 1234, OFICINA 567",
+    "comuna": "PROVIDENCIA",
+    "ciudad": "SANTIAGO"
+  },
+  "receptor": {
+    "rut": "12345678-9",
+    "razon_social": "CLIENTE RECEPTOR SOCIEDAD ANÓNIMA",
+    "giro": "COMERCIO AL POR MENOR DE PRODUCTOS TECNOLÓGICOS",
+    "direccion": "CALLE EJEMPLO 4567, PISO 8",
+    "comuna": "LAS CONDES",
+    "ciudad": "SANTIAGO"
+  },
+  "detalles": [
+    {
+      "nombre_item": "Descuento por Servicio No Conforme",
+      "descripcion": "Descuento aplicado por servicios que no cumplieron con los estándares acordados",
+      "cantidad": 1,
+      "unidad_medida": "UN",
+      "precio_unitario": 500000
+    }
+  ],
+  "referencias": [
+    {
+      "tipo_documento": 33,
+      "folio_referencia": 1001,
+      "fecha_referencia": "2024-01-15",
+      "codigo_referencia": 3,
+      "razon_referencia": "Descuento por servicios no conformes según reclamo cliente"
+    }
+  ],
+  "observaciones": "Nota de crédito emitida para corregir factura N° 1001 por servicios que no cumplieron estándares de calidad acordados."
+}

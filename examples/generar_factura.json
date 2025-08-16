@@ -1,0 +1,54 @@
+{
+  "tipo_dte": 33,
+  "fecha_emision": "2024-01-15",
+  "forma_pago": 1,
+  "fecha_vencimiento": "2024-02-15",
+  "emisor": {
+    "rut": "76543210-9",
+    "razon_social": "EMPRESA EMISORA LIMITADA",
+    "giro": "SERVICIOS DE CONSULTORÍA EN TECNOLOGÍA",
+    "direccion": "AV. PROVIDENCIA 1234, OFICINA 567",
+    "comuna": "PROVIDENCIA",
+    "ciudad": "SANTIAGO",
+    "telefono": "+56912345678",
+    "email": "contacto@empresaemisora.cl",
+    "actividad_economica": 620100
+  },
+  "receptor": {
+    "rut": "12345678-9",
+    "razon_social": "CLIENTE RECEPTOR SOCIEDAD ANÓNIMA",
+    "giro": "COMERCIO AL POR MENOR DE PRODUCTOS TECNOLÓGICOS",
+    "direccion": "CALLE EJEMPLO 4567, PISO 8",
+    "comuna": "LAS CONDES",
+    "ciudad": "SANTIAGO",
+    "email": "facturacion@clientereceptor.cl"
+  },
+  "detalles": [
+    {
+      "nombre_item": "Consultoría en Desarrollo de Software",
+      "descripcion": "Servicios de consultoría especializada en desarrollo de aplicaciones web y móviles",
+      "cantidad": 80,
+      "unidad_medida": "HRS",
+      "precio_unitario": 25000,
+      "codigo_item": "CONS-DEV-001"
+    },
+    {
+      "nombre_item": "Licencia Software Anual",
+      "descripcion": "Licencia de uso anual para plataforma de gestión empresarial",
+      "cantidad": 1,
+      "unidad_medida": "UN",
+      "precio_unitario": 1200000,
+      "codigo_item": "LIC-SOFT-001"
+    },
+    {
+      "nombre_item": "Capacitación Personal",
+      "descripcion": "Capacitación del personal en uso de nuevas tecnologías",
+      "cantidad": 16,
+      "unidad_medida": "HRS",
+      "precio_unitario": 35000,
+      "descuento_porcentaje": 10,
+      "codigo_item": "CAP-PERS-001"
+    }
+  ],
+  "observaciones": "Factura correspondiente a servicios prestados durante el mes de enero 2024. Incluye consultoría, licenciamiento y capacitación según contrato marco N° 2024-001."
+}

@@ -1,0 +1,57 @@
+{
+  "emisor": {
+    "rut": "76543210-9",
+    "razon_social": "SUPERMERCADO EJEMPLO LIMITADA",
+    "giro": "COMERCIO AL POR MENOR EN SUPERMERCADOS",
+    "direccion": "AV. CENTRAL 2500",
+    "comuna": "MAIPÚ",
+    "ciudad": "SANTIAGO"
+  },
+  "receptor": {
+    "rut": "66666666-6",
+    "razon_social": "CONSUMIDOR FINAL"
+  },
+  "detalles": [
+    {
+      "nombre_item": "Pan Hallulla",
+      "cantidad": 6,
+      "precio_unitario": 500,
+      "unidad_medida": "UN",
+      "codigo_item": "PAN-001"
+    },
+    {
+      "nombre_item": "Leche Entera 1L",
+      "cantidad": 2,
+      "precio_unitario": 1200,
+      "unidad_medida": "UN",
+      "codigo_item": "LEC-001"
+    },
+    {
+      "nombre_item": "Queso Mantecoso",
+      "cantidad": 1,
+      "precio_unitario": 3500,
+      "unidad_medida": "UN",
+      "codigo_item": "QUE-001"
+    },
+    {
+      "nombre_item": "Jamón de Pavo",
+      "cantidad": 0.5,
+      "precio_unitario": 8000,
+      "unidad_medida": "KG",
+      "codigo_item": "JAM-001"
+    },
+    {
+      "nombre_item": "Tomate",
+      "cantidad": 1.2,
+      "precio_unitario": 2500,
+      "unidad_medida": "KG",
+      "codigo_item": "TOM-001"
+    }
+  ],
+  "boleta": {
+    "forma_pago": "tarjeta_debito",
+    "numero_caja": "003",
+    "cajero": "MARIA GONZALEZ"
+  },
+  "observaciones": "Compra realizada en sucursal Maipú"
+}
