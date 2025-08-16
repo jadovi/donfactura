@@ -1,0 +1,21 @@
+{
+  "rut_empresa": "76543210-9",
+  "razon_social": "EMPRESA EJEMPLO LIMITADA",
+  "nombre_fantasia": "Empresa Ejemplo",
+  "giro": "SERVICIOS DE CONSULTORÍA EN TECNOLOGÍA",
+  "direccion": "AV. PROVIDENCIA 1234, OFICINA 567",
+  "comuna": "PROVIDENCIA",
+  "ciudad": "SANTIAGO",
+  "region": "REGIÓN METROPOLITANA",
+  "telefono": "+56912345678",
+  "email": "contacto@empresaejemplo.cl",
+  "website": "https://empresaejemplo.cl",
+  "formato_carta": true,
+  "formato_80mm": true,
+  "color_primario": "#1a365d",
+  "color_secundario": "#4a5568",
+  "margen_superior": 20.00,
+  "margen_inferior": 20.00,
+  "margen_izquierdo": 25.00,
+  "margen_derecho": 25.00
+}

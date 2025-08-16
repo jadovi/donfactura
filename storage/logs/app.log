@@ -9,3 +9,5 @@
 [2025-08-16 08:18:08] Request: GET /
 [2025-08-16 08:18:21] Request: GET /health
 [2025-08-16 08:18:34] Request: GET /test-db
+[2025-08-16 08:35:55] Request: GET /pdf-features
+[2025-08-16 08:35:56] Request: GET /estructura

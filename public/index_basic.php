@@ -58,7 +58,9 @@ switch ($uri) {
                 'GET /' => 'Información de la API',
                 'GET /health' => 'Estado del sistema',
                 'GET /test-db' => 'Test de conexión a BD',
-                'POST /test' => 'Test de funcionalidad básica'
+                'POST /test' => 'Test de funcionalidad básica',
+                'GET /estructura' => 'Ver estructura de base de datos',
+                'GET /pdf-features' => 'Ver funcionalidades PDF implementadas'
             ]
         ]);
         break;
@@ -187,8 +189,8 @@ switch ($uri) {
 
             $structure = [];
             
-            // Obtener estructura de cada tabla
-            $tables = ['certificados', 'folios', 'documentos_dte', 'dte_detalles', 'boletas_electronicas'];
+            // Obtener estructura de todas las tablas incluyendo las nuevas
+            $tables = ['certificados', 'folios', 'documentos_dte', 'dte_detalles', 'boletas_electronicas', 'empresas_config', 'documentos_pdf', 'plantillas_pdf'];
             
             foreach ($tables as $table) {
                 try {
@@ -222,6 +224,47 @@ switch ($uri) {
         }
         break;
 
+    case '/pdf-features':
+        jsonResponse([
+            'title' => 'Funcionalidades PDF Implementadas',
+            'features' => [
+                '✅ Generación PDF formato CARTA (21.5x27.9cm)',
+                '✅ Generación PDF formato 80mm (ticket térmico)',
+                '✅ Códigos de barras 2D según especificaciones SII',
+                '✅ Gestión de logos de empresa',
+                '✅ Personalización de colores y estilos',
+                '✅ Configuración de márgenes',
+                '✅ Plantillas personalizables por empresa',
+                '✅ Almacenamiento de PDFs generados'
+            ],
+            'endpoints_pdf' => [
+                'POST /api/empresas/config' => 'Configurar datos de empresa',
+                'POST /api/empresas/{id}/logo' => 'Subir logo de empresa',
+                'GET /api/empresas/{rut}/config' => 'Obtener configuración',
+                'POST /api/dte/{id}/pdf?formato=carta' => 'Generar PDF formato carta',
+                'POST /api/dte/{id}/pdf?formato=80mm' => 'Generar PDF formato 80mm',
+                'GET /api/pdf/{pdf_id}/download' => 'Descargar PDF generado'
+            ],
+            'formatos_soportados' => [
+                'carta' => [
+                    'tamaño' => '21.5 x 27.9 cm',
+                    'orientacion' => 'vertical',
+                    'uso' => 'Facturas, notas de crédito/débito para archivo e impresión estándar'
+                ],
+                '80mm' => [
+                    'tamaño' => '80mm ancho x auto alto',
+                    'orientacion' => 'vertical',
+                    'uso' => 'Boletas para impresoras térmicas de punto de venta'
+                ]
+            ],
+            'codigo_barras_2d' => [
+                'formato' => 'Según especificaciones SII',
+                'contenido' => 'RUTEmisor;TipoDTE;Folio;Fecha;RUTReceptor;Monto',
+                'ubicacion' => 'Superior derecho (carta) / Inferior centrado (80mm)'
+            ]
+        ]);
+        break;
+
     default:
         jsonResponse([
             'error' => 'Endpoint no encontrado',
@@ -231,7 +274,8 @@ switch ($uri) {
                 'GET /test-db',
                 'POST /test',
                 'GET /install',
-                'GET /estructura'
+                'GET /estructura',
+                'GET /pdf-features'
             ]
         ], 404);
 }
