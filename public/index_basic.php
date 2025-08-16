@@ -45,8 +45,62 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 logMessage("Request: {$method} {$uri}");
 
+// Función para manejar rutas dinámicas
+function matchRoute($pattern, $uri) {
+    $pattern = str_replace('/', '\/', $pattern);
+    $pattern = preg_replace('/\{(\w+)\}/', '([^\/]+)', $pattern);
+    return preg_match('/^' . $pattern . '$/', $uri, $matches) ? array_slice($matches, 1) : false;
+}
+
 // Rutas
-switch ($uri) {
+// Verificar rutas dinámicas primero
+if ($matches = matchRoute('/api/bhe/{id}', $uri)) {
+    if ($method !== 'GET') {
+        jsonResponse(['error' => 'Método no permitido'], 405);
+    }
+    
+    try {
+        require_once __DIR__ . '/../vendor/autoload.php';
+        require_once __DIR__ . '/../src/Core/Database.php';
+        require_once __DIR__ . '/../src/Controllers/BHEController.php';
+        
+        $dteId = (int) $matches[0];
+        $database = new DonFactura\DTE\Core\Database($config['database']);
+        $pdo = $database->getConnection();
+        
+        $controller = new DonFactura\DTE\Controllers\BHEController($pdo, $config);
+        $resultado = $controller->obtener($dteId);
+        
+        jsonResponse($resultado);
+    } catch (Exception $e) {
+        logMessage('Error BHE obtener: ' . $e->getMessage());
+        jsonResponse(['error' => 'Error interno: ' . $e->getMessage()], 500);
+    }
+} elseif ($matches = matchRoute('/api/bhe/{id}/pdf', $uri)) {
+    if ($method !== 'POST') {
+        jsonResponse(['error' => 'Método no permitido'], 405);
+    }
+    
+    try {
+        require_once __DIR__ . '/../vendor/autoload.php';
+        require_once __DIR__ . '/../src/Core/Database.php';
+        require_once __DIR__ . '/../src/Controllers/BHEController.php';
+        
+        $dteId = (int) $matches[0];
+        $database = new DonFactura\DTE\Core\Database($config['database']);
+        $pdo = $database->getConnection();
+        
+        $controller = new DonFactura\DTE\Controllers\BHEController($pdo, $config);
+        $resultado = $controller->generarPDF($dteId);
+        
+        jsonResponse($resultado);
+    } catch (Exception $e) {
+        logMessage('Error BHE PDF: ' . $e->getMessage());
+        jsonResponse(['error' => 'Error interno: ' . $e->getMessage()], 500);
+    }
+} else {
+    // Rutas estáticas
+    switch ($uri) {
     case '/':
         jsonResponse([
             'message' => 'API DTE - Documentos Tributarios Electrónicos Chile',
@@ -265,6 +319,98 @@ switch ($uri) {
         ]);
         break;
 
+    // ========================================
+    // RUTAS BOLETAS DE HONORARIOS ELECTRÓNICAS (BHE) - DTE TIPO 41
+    // ========================================
+    
+    case '/api/bhe/generar':
+        if ($method !== 'POST') {
+            jsonResponse(['error' => 'Método no permitido'], 405);
+        }
+        
+        try {
+            require_once __DIR__ . '/../vendor/autoload.php';
+            require_once __DIR__ . '/../src/Core/Database.php';
+            require_once __DIR__ . '/../src/Controllers/BHEController.php';
+            
+            $database = new DonFactura\DTE\Core\Database($config['database']);
+            $pdo = $database->getConnection();
+            
+            $controller = new DonFactura\DTE\Controllers\BHEController($pdo, $config);
+            $resultado = $controller->generar();
+            
+            jsonResponse($resultado);
+        } catch (Exception $e) {
+            logMessage('Error BHE generar: ' . $e->getMessage());
+            jsonResponse(['error' => 'Error interno: ' . $e->getMessage()], 500);
+        }
+        break;
+
+    case '/api/profesionales':
+        try {
+            require_once __DIR__ . '/../vendor/autoload.php';
+            require_once __DIR__ . '/../src/Core/Database.php';
+            require_once __DIR__ . '/../src/Controllers/BHEController.php';
+            
+            $database = new DonFactura\DTE\Core\Database($config['database']);
+            $pdo = $database->getConnection();
+            
+            $controller = new DonFactura\DTE\Controllers\BHEController($pdo, $config);
+            
+            if ($method === 'POST') {
+                $resultado = $controller->registrarProfesional();
+            } elseif ($method === 'GET') {
+                $resultado = $controller->listarProfesionales();
+            } else {
+                jsonResponse(['error' => 'Método no permitido'], 405);
+            }
+            
+            jsonResponse($resultado);
+        } catch (Exception $e) {
+            logMessage('Error profesionales: ' . $e->getMessage());
+            jsonResponse(['error' => 'Error interno: ' . $e->getMessage()], 500);
+        }
+        break;
+
+    case '/bhe-features':
+        jsonResponse([
+            'title' => 'Funcionalidades BHE (Boletas de Honorarios Electrónicas) Implementadas',
+            'tipo_dte' => 41,
+            'nombre_documento' => 'Boleta de Honorarios Electrónica',
+            'features' => [
+                '✅ Generación BHE DTE Tipo 41',
+                '✅ Firma electrónica OBLIGATORIA',
+                '✅ Retención automática 10% segunda categoría',
+                '✅ Gestión completa de profesionales',
+                '✅ Validación de períodos de servicios',
+                '✅ Cálculo automático de montos líquidos',
+                '✅ XML específico para BHE según SII',
+                '✅ PDF formato CARTA y 80mm para BHE',
+                '✅ Códigos QR específicos BHE',
+                '✅ Registro y búsqueda de profesionales',
+                '✅ Reportes por período profesional',
+                '✅ Base de datos comunas chilenas',
+                '✅ Plantillas PDF personalizables'
+            ],
+            'endpoints_bhe' => [
+                'POST /api/bhe/generar' => 'Generar nueva BHE',
+                'POST /api/profesionales' => 'Registrar profesional',
+                'GET /api/profesionales' => 'Listar profesionales',
+                'GET /bhe-features' => 'Ver funcionalidades BHE'
+            ],
+            'caracteristicas_bhe' => [
+                'firma_electronica' => 'Obligatoria para validez legal',
+                'retencion' => '10% sobre honorarios brutos (segunda categoría)',
+                'periodo_servicios' => 'Máximo 12 meses por BHE',
+                'xml_estructura' => 'Específica para servicios profesionales'
+            ],
+            'ejemplos' => [
+                'generar_bhe' => 'Ver /examples/generar_bhe.json',
+                'registrar_profesional' => 'Ver /examples/registrar_profesional.json'
+            ]
+        ]);
+        break;
+
     default:
         jsonResponse([
             'error' => 'Endpoint no encontrado',
@@ -275,8 +421,12 @@ switch ($uri) {
                 'POST /test',
                 'GET /install',
                 'GET /estructura',
-                'GET /pdf-features'
+                'GET /pdf-features',
+                'GET /bhe-features',
+                'POST /api/bhe/generar',
+                'POST /api/profesionales'
             ]
         ], 404);
+    }
 }
 ?>

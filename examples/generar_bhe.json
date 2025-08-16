@@ -1,0 +1,27 @@
+{
+  "profesional": {
+    "rut": "12345678-9",
+    "observaciones": "Profesional independiente con experiencia en desarrollo de software"
+  },
+  "pagador": {
+    "rut": "76543210-9",
+    "nombre": "EMPRESA TECNOLÓGICA LTDA",
+    "direccion": "AV. PROVIDENCIA 2000",
+    "comuna": "PROVIDENCIA",
+    "codigo_comuna": "13123"
+  },
+  "servicios": {
+    "descripcion": "Desarrollo de aplicación web personalizada para gestión de inventarios. Incluye diseño de base de datos, implementación de backend en PHP, frontend responsive y testing de funcionalidades.",
+    "periodo_desde": "2024-12-01",
+    "periodo_hasta": "2024-12-31",
+    "monto_bruto": 1500000,
+    "porcentaje_retencion": 10.0,
+    "observaciones": "Proyecto completado según especificaciones técnicas acordadas"
+  },
+  "forma_pago": 1,
+  "metadata": {
+    "ip_emisor": "192.168.1.100",
+    "usuario_emisor": "juan.perez",
+    "comentarios": "Primera BHE del mes de diciembre 2024"
+  }
+}

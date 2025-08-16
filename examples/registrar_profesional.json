@@ -1,0 +1,19 @@
+{
+  "rut_profesional": "11222333-4",
+  "nombres": "MARÍA ELENA",
+  "apellido_paterno": "GONZÁLEZ",
+  "apellido_materno": "RIVERA",
+  "fecha_nacimiento": "1985-08-15",
+  "profesion": "CONTADOR AUDITOR",
+  "titulo_profesional": "CONTADOR PÚBLICO AUDITOR",
+  "universidad": "UNIVERSIDAD DE CHILE",
+  "telefono": "+56987654321",
+  "email": "maria.gonzalez@email.com",
+  "direccion": "CALLE PRINCIPAL 456",
+  "comuna": "LAS CONDES",
+  "codigo_comuna": "13114",
+  "region": "REGIÓN METROPOLITANA DE SANTIAGO",
+  "activo_bhe": true,
+  "porcentaje_retencion_default": 10.0,
+  "certificado_id": null
+}

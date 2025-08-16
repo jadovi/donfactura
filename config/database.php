@@ -43,6 +43,7 @@ return [
         33 => 'Factura Electrónica',
         34 => 'Factura Electrónica Exenta',
         39 => 'Boleta Electrónica',
+        41 => 'Boleta de Honorarios Electrónica (BHE)',
         45 => 'Factura de Compra Electrónica',
         56 => 'Nota de Débito Electrónica',
         61 => 'Nota de Crédito Electrónica',
