@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Rápido API DonFactura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./config.js"></script>
+    <style>
+        .result-box {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">
+                🧾 Test Rápido API DonFactura
+            </h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Quick Tests -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Tests Rápidos</h2>
+                    
+                    <button onclick="testHealth()" 
+                            class="w-full bg-blue-600 text-white p-3 rounded hover:bg-blue-700 transition-colors">
+                        🔍 Test Health Check
+                    </button>
+                    
+                    <button onclick="testBHEFeatures()" 
+                            class="w-full bg-green-600 text-white p-3 rounded hover:bg-green-700 transition-colors">
+                        📋 Test BHE Features
+                    </button>
+                    
+                    <button onclick="testPDFFeatures()" 
+                            class="w-full bg-red-600 text-white p-3 rounded hover:bg-red-700 transition-colors">
+                        📄 Test PDF Features
+                    </button>
+                    
+                    <button onclick="testGenerateFakeDTE()" 
+                            class="w-full bg-purple-600 text-white p-3 rounded hover:bg-purple-700 transition-colors">
+                        🧪 Test Generar DTE Fake
+                    </button>
+                    
+                    <button onclick="testGenerateFakeBHE()" 
+                            class="w-full bg-orange-600 text-white p-3 rounded hover:bg-orange-700 transition-colors">
+                        💼 Test Generar BHE Fake
+                    </button>
+                    
+                    <button onclick="runAllTests()" 
+                            class="w-full bg-gray-800 text-white p-3 rounded hover:bg-gray-900 transition-colors">
+                        🚀 Ejecutar Todos los Tests
+                    </button>
+                </div>
+                
+                <!-- Results -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Resultados</h2>
+                    
+                    <div id="status" class="p-3 rounded border">
+                        <div class="flex items-center">
+                            <div id="status-indicator" class="w-3 h-3 rounded-full bg-gray-400 mr-3"></div>
+                            <span id="status-text">Listo para testing</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-box">
+                        <div id="results" class="space-y-2">
+                            <!-- Los resultados aparecerán aquí -->
+                        </div>
+                    </div>
+                    
+                    <button onclick="clearResults()" 
+                            class="w-full bg-gray-500 text-white p-2 rounded hover:bg-gray-600 transition-colors">
+                        🗑️ Limpiar Resultados
+                    </button>
+                </div>
+            </div>
+            
+            <!-- URL Info -->
+            <div class="mt-6 p-4 bg-gray-50 rounded">
+                <h3 class="font-semibold text-gray-800 mb-2">Configuración API</h3>
+                <p class="text-sm text-gray-600">
+                    URL Base: <code id="api-url" class="bg-gray-200 px-2 py-1 rounded"></code>
+                </p>
+                <p class="text-sm text-gray-600 mt-1">
+                    <span id="connection-status">Verificando conexión...</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración
+        const API_URL = CONFIG.API_BASE_URL;
+        document.getElementById('api-url').textContent = API_URL;
+        
+        // Elementos DOM
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        const resultsContainer = document.getElementById('results');
+        const connectionStatus = document.getElementById('connection-status');
+        
+        // Estado
+        let testCount = 0;
+        
+        // Utilidades
+        function setStatus(status, message) {
+            statusText.textContent = message;
+            statusIndicator.className = `w-3 h-3 rounded-full mr-3 ${
+                status === 'success' ? 'bg-green-500' :
+                status === 'error' ? 'bg-red-500' :
+                status === 'loading' ? 'bg-yellow-500' :
+                'bg-gray-400'
+            }`;
+        }
+        
+        function addResult(test, success, data, error = null) {
+            testCount++;
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `p-3 rounded border-l-4 ${success ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`;
+            
+            const timestamp = new Date().toLocaleTimeString('es-CL');
+            
+            resultDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-medium">${testCount}. ${test}</span>
+                    <span class="text-xs text-gray-500">${timestamp}</span>
+                </div>
+                <div class="text-sm ${success ? 'text-green-700' : 'text-red-700'}">
+                    ${success ? '✅ Exitoso' : '❌ Error'}
+                    ${error ? `: ${error}` : ''}
+                </div>
+                ${data ? `<details class="mt-2"><summary class="cursor-pointer text-xs text-gray-600">Ver detalles</summary><pre class="mt-1 text-xs bg-gray-100 p-2 rounded overflow-x-auto">${JSON.stringify(data, null, 2)}</pre></details>` : ''}
+            `;
+            
+            resultsContainer.insertBefore(resultDiv, resultsContainer.firstChild);
+        }
+        
+        function clearResults() {
+            resultsContainer.innerHTML = '';
+            testCount = 0;
+            setStatus('info', 'Resultados limpiados');
+        }
+        
+        // Tests
+        async function testHealth() {
+            setStatus('loading', 'Testing Health Check...');
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('Health Check', true, data);
+                    setStatus('success', 'Health Check exitoso');
+                } else {
+                    addResult('Health Check', false, data, `HTTP ${response.status}`);
+                    setStatus('error', 'Health Check falló');
+                }
+            } catch (error) {
+                addResult('Health Check', false, null, error.message);
+                setStatus('error', 'Error de conexión');
+            }
+        }
+        
+        async function testBHEFeatures() {
+            setStatus('loading', 'Testing BHE Features...');
+            try {
+                const response = await fetch(`${API_URL}/bhe-features`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('BHE Features', true, data);
+                    setStatus('success', 'BHE Features exitoso');
+                } else {
+                    addResult('BHE Features', false, data, `HTTP ${response.status}`);
+                    setStatus('error', 'BHE Features falló');
+                }
+            } catch (error) {
+                addResult('BHE Features', false, null, error.message);
+                setStatus('error', 'Error de conexión');
+            }
+        }
+        
+        async function testPDFFeatures() {
+            setStatus('loading', 'Testing PDF Features...');
+            try {
+                const response = await fetch(`${API_URL}/pdf-features`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult('PDF Features', true, data);
+                    setStatus('success', 'PDF Features exitoso');
+                } else {
+                    addResult('PDF Features', false, data, `HTTP ${response.status}`);
+                    setStatus('error', 'PDF Features falló');
+                }
+            } catch (error) {
+                addResult('PDF Features', false, null, error.message);
+                setStatus('error', 'Error de conexión');
+            }
+        }
+        
+        async function testGenerateFakeDTE() {
+            setStatus('loading', 'Testing Generar DTE...');
+            
+            const fakeData = {
+                tipo_dte: 33,
+                fecha_emision: new Date().toISOString().split('T')[0],
+                emisor: {
+                    rut: '76543210-9',
+                    razon_social: 'EMPRESA TEST LTDA',
+                    giro: 'SERVICIOS DE TESTING',
+                    direccion: 'AV. TEST 123',
+                    comuna: 'SANTIAGO',
+                    ciudad: 'SANTIAGO'
+                },
+                receptor: {
+                    rut: '12345678-9',
+                    razon_social: 'CLIENTE TEST S.A.',
+                    giro: 'COMERCIO',
+                    direccion: 'CALLE TEST 456',
+                    comuna: 'PROVIDENCIA',
+                    ciudad: 'SANTIAGO'
+                },
+                detalles: [{
+                    nombre_item: 'Producto Test',
+                    cantidad: 1,
+                    precio_unitario: 10000,
+                    unidad_medida: 'UN'
+                }],
+                observaciones: 'Documento de prueba desde test rápido'
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/dte/generar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fakeData)
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addResult('Generar DTE', true, data);
+                    setStatus('success', 'DTE generado exitosamente');
+                } else {
+                    addResult('Generar DTE', false, data, 'Error en generación');
+                    setStatus('error', 'Error al generar DTE');
+                }
+            } catch (error) {
+                addResult('Generar DTE', false, null, error.message);
+                setStatus('error', 'Error de conexión');
+            }
+        }
+        
+        async function testGenerateFakeBHE() {
+            setStatus('loading', 'Testing Generar BHE...');
+            
+            const fakeData = {
+                profesional: {
+                    rut: '12345678-9'
+                },
+                pagador: {
+                    rut: '76543210-9',
+                    nombre: 'EMPRESA PAGADORA TEST LTDA',
+                    direccion: 'AV. PAGADOR 123',
+                    comuna: 'SANTIAGO'
+                },
+                servicios: {
+                    descripcion: 'Desarrollo de aplicación test para validación del sistema',
+                    periodo_desde: new Date().toISOString().split('T')[0],
+                    periodo_hasta: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0],
+                    monto_bruto: 1500000,
+                    porcentaje_retencion: 10.0
+                }
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/api/bhe/generar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(fakeData)
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addResult('Generar BHE', true, data);
+                    setStatus('success', 'BHE generada exitosamente');
+                } else {
+                    addResult('Generar BHE', false, data, data.error || 'Error en generación');
+                    setStatus('error', 'Error al generar BHE');
+                }
+            } catch (error) {
+                addResult('Generar BHE', false, null, error.message);
+                setStatus('error', 'Error de conexión');
+            }
+        }
+        
+        async function runAllTests() {
+            setStatus('loading', 'Ejecutando todos los tests...');
+            clearResults();
+            
+            await testHealth();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testBHEFeatures();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPDFFeatures();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testGenerateFakeDTE();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testGenerateFakeBHE();
+            
+            setStatus('success', 'Todos los tests completados');
+        }
+        
+        // Verificar conexión inicial
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    connectionStatus.textContent = '✅ API conectada y funcionando';
+                    connectionStatus.className = 'text-sm text-green-600';
+                } else {
+                    connectionStatus.textContent = '⚠️ API responde pero con errores';
+                    connectionStatus.className = 'text-sm text-yellow-600';
+                }
+            } catch (error) {
+                connectionStatus.textContent = '❌ No se puede conectar a la API';
+                connectionStatus.className = 'text-sm text-red-600';
+            }
+        }
+        
+        // Inicializar
+        checkConnection();
+    </script>
+</body>
+</html>

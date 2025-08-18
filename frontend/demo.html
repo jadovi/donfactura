@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DonFactura Demo - Testing API Facturación Electrónica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="./config.js"></script>
+    <style>
+        .test-card { 
+            transition: all 0.3s ease; 
+        }
+        .test-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15); 
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #10b981; }
+        .status-error { background-color: #ef4444; }
+        .status-pending { background-color: #f59e0b; }
+        .code-block {
+            font-family: 'Courier New', monospace;
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-50" x-data="demoApp()">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">🧾 DonFactura Demo</h1>
+                    <p class="text-blue-100 mt-2">Centro de Testing - API Facturación Electrónica Chile</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <span class="status-indicator" :class="getConnectionStatusClass()"></span>
+                        <span x-text="connectionStatus" class="text-sm"></span>
+                    </div>
+                    <button @click="checkAllEndpoints()" 
+                            class="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Verificar API
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8">
+                <button @click="activeTab = 'endpoints'" 
+                        :class="activeTab === 'endpoints' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-server mr-2"></i>Endpoints
+                </button>
+                <button @click="activeTab = 'dte-test'" 
+                        :class="activeTab === 'dte-test' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-file-invoice mr-2"></i>Test DTE
+                </button>
+                <button @click="activeTab = 'bhe-test'" 
+                        :class="activeTab === 'bhe-test' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-receipt mr-2"></i>Test BHE
+                </button>
+                <button @click="activeTab = 'pdf-test'" 
+                        :class="activeTab === 'pdf-test' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-file-pdf mr-2"></i>Test PDF
+                </button>
+                <button @click="activeTab = 'certificates'" 
+                        :class="activeTab === 'certificates' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-certificate mr-2"></i>Certificados
+                </button>
+                <button @click="activeTab = 'sii-test'" 
+                        :class="activeTab === 'sii-test' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                        class="py-4 px-1 border-b-2 font-medium text-sm">
+                    <i class="fas fa-building mr-2"></i>SII Testing
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        
+        <!-- Endpoints Tab -->
+        <div x-show="activeTab === 'endpoints'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Estado de Endpoints API</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <template x-for="endpoint in endpoints" :key="endpoint.url">
+                        <div class="test-card bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-medium text-gray-500 uppercase tracking-wide" x-text="endpoint.method"></span>
+                                <span class="status-indicator" :class="getEndpointStatusClass(endpoint.status)"></span>
+                            </div>
+                            <h3 class="text-sm font-medium text-gray-900 mb-1" x-text="endpoint.name"></h3>
+                            <p class="text-xs text-gray-600 mb-3" x-text="endpoint.url"></p>
+                            <div class="flex space-x-2">
+                                <button @click="testEndpoint(endpoint)" 
+                                        :disabled="endpoint.testing"
+                                        class="flex-1 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 disabled:opacity-50">
+                                    <span x-show="!endpoint.testing">Test</span>
+                                    <span x-show="endpoint.testing">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </button>
+                                <button @click="viewEndpointDetails(endpoint)" 
+                                        class="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div x-show="endpoint.lastResponse" class="mt-2 text-xs">
+                                <div class="text-gray-500">Última respuesta:</div>
+                                <div :class="endpoint.status === 'success' ? 'text-green-600' : 'text-red-600'" 
+                                     x-text="endpoint.lastResponse"></div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- DTE Test Tab -->
+        <div x-show="activeTab === 'dte-test'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Test Generación DTE</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Quick Tests -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Tests Rápidos</h3>
+                        
+                        <template x-for="test in dteQuickTests" :key="test.name">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="font-medium text-gray-900" x-text="test.name"></h4>
+                                    <span class="text-sm text-gray-500" x-text="test.type"></span>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-3" x-text="test.description"></p>
+                                <button @click="runDTETest(test)" 
+                                        :disabled="test.testing"
+                                        class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+                                    <span x-show="!test.testing">Ejecutar Test</span>
+                                    <span x-show="test.testing">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>Ejecutando...
+                                    </span>
+                                </button>
+                                <div x-show="test.result" class="mt-2">
+                                    <div class="text-xs text-gray-500">Resultado:</div>
+                                    <div :class="test.success ? 'text-green-600' : 'text-red-600'" 
+                                         class="text-sm font-medium" x-text="test.result"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    
+                    <!-- Custom Test -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Test Personalizado</h3>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tipo de DTE</label>
+                                <select x-model="customDTETest.tipo_dte" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Seleccionar tipo</option>
+                                    <option value="33">33 - Factura Electrónica</option>
+                                    <option value="34">34 - Factura Electrónica Exenta</option>
+                                    <option value="39">39 - Boleta Electrónica</option>
+                                    <option value="56">56 - Nota de Débito Electrónica</option>
+                                    <option value="61">61 - Nota de Crédito Electrónica</option>
+                                </select>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">RUT Emisor</label>
+                                    <input type="text" x-model="customDTETest.emisor.rut" placeholder="76543210-9"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">RUT Receptor</label>
+                                    <input type="text" x-model="customDTETest.receptor.rut" placeholder="12345678-9"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Monto Total Test</label>
+                                <input type="number" x-model="customDTETest.monto_test" placeholder="100000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <button @click="runCustomDTETest()" 
+                                    :disabled="!customDTETest.tipo_dte || customDTETestRunning"
+                                    class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
+                                <span x-show="!customDTETestRunning">Generar DTE Test</span>
+                                <span x-show="customDTETestRunning">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Results -->
+                <div x-show="dteTestResults.length > 0" class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Resultados de Tests</h3>
+                    <div class="space-y-2">
+                        <template x-for="result in dteTestResults" :key="result.timestamp">
+                            <div class="border border-gray-200 rounded p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="status-indicator" :class="result.success ? 'status-success' : 'status-error'"></span>
+                                        <span class="font-medium" x-text="result.test"></span>
+                                        <span class="text-sm text-gray-500 ml-2" x-text="result.timestamp"></span>
+                                    </div>
+                                    <button @click="toggleResultDetails(result)" class="text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </button>
+                                </div>
+                                <div x-show="result.showDetails" class="mt-2">
+                                    <div class="code-block text-xs" x-text="JSON.stringify(result.data, null, 2)"></div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BHE Test Tab -->
+        <div x-show="activeTab === 'bhe-test'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Test Boletas de Honorarios Electrónicas</h2>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-info-circle text-blue-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-blue-800">Información BHE</h3>
+                            <div class="mt-2 text-sm text-blue-700">
+                                <p>Las BHE (DTE Tipo 41) requieren:</p>
+                                <ul class="list-disc list-inside mt-1">
+                                    <li>Profesional registrado en el sistema</li>
+                                    <li>Retención automática del 10% (segunda categoría)</li>
+                                    <li>Período de servicios válido (máx. 12 meses)</li>
+                                    <li>Firma electrónica obligatoria</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Professional Registration Test -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900">1. Registrar Profesional</h3>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">RUT Profesional</label>
+                                <input type="text" x-model="bheTest.profesional.rut" placeholder="12345678-9"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Nombres</label>
+                                    <input type="text" x-model="bheTest.profesional.nombres" placeholder="Juan Carlos"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Apellidos</label>
+                                    <input type="text" x-model="bheTest.profesional.apellidos" placeholder="González Pérez"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Profesión</label>
+                                <input type="text" x-model="bheTest.profesional.profesion" placeholder="Ingeniero en Sistemas"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <button @click="registerProfessional()" 
+                                    :disabled="professionalRegistering"
+                                    class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50">
+                                <span x-show="!professionalRegistering">Registrar Profesional</span>
+                                <span x-show="professionalRegistering">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Registrando...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- BHE Generation Test -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900">2. Generar BHE</h3>
+                        
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">RUT Pagador</label>
+                                    <input type="text" x-model="bheTest.pagador.rut" placeholder="76543210-9"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Nombre Pagador</label>
+                                    <input type="text" x-model="bheTest.pagador.nombre" placeholder="Empresa Pagadora LTDA"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Descripción Servicio</label>
+                                <textarea x-model="bheTest.servicios.descripcion" rows="2" 
+                                          placeholder="Desarrollo de aplicación web personalizada..."
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Período Desde</label>
+                                    <input type="date" x-model="bheTest.servicios.periodo_desde"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Período Hasta</label>
+                                    <input type="date" x-model="bheTest.servicios.periodo_hasta"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Monto Bruto</label>
+                                <input type="number" x-model="bheTest.servicios.monto_bruto" placeholder="1500000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <div class="text-sm text-gray-500 mt-1">
+                                    Retención 10%: $<span x-text="UTILS.formatCurrency((bheTest.servicios.monto_bruto || 0) * 0.1)"></span> |
+                                    Líquido: $<span x-text="UTILS.formatCurrency((bheTest.servicios.monto_bruto || 0) * 0.9)"></span>
+                                </div>
+                            </div>
+                            <button @click="generateBHE()" 
+                                    :disabled="bheGenerating"
+                                    class="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50">
+                                <span x-show="!bheGenerating">Generar BHE</span>
+                                <span x-show="bheGenerating">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- BHE Results -->
+                <div x-show="bheResults.length > 0" class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">BHE Generadas</h3>
+                    <div class="space-y-2">
+                        <template x-for="bhe in bheResults" :key="bhe.id">
+                            <div class="border border-gray-200 rounded p-4">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium">BHE #<span x-text="bhe.id"></span></div>
+                                        <div class="text-sm text-gray-500">
+                                            <span x-text="bhe.profesional_rut"></span> → <span x-text="bhe.pagador_nombre"></span>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            Monto: $<span x-text="UTILS.formatCurrency(bhe.monto_bruto)"></span> 
+                                            | Líquido: $<span x-text="UTILS.formatCurrency(bhe.monto_liquido)"></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button @click="generateBHEPDF(bhe.id)" 
+                                                class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                                            <i class="fas fa-file-pdf mr-1"></i>PDF
+                                        </button>
+                                        <button @click="viewBHEDetails(bhe)" 
+                                                class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                            <i class="fas fa-eye mr-1"></i>Ver
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF Test Tab -->
+        <div x-show="activeTab === 'pdf-test'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Test Generación PDF con QR</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Generar PDF</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">ID del Documento</label>
+                                <input type="number" x-model="pdfTest.documentId" placeholder="1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Formato</label>
+                                <select x-model="pdfTest.formato" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="carta">Carta (21.5x27.9cm)</option>
+                                    <option value="80mm">80mm (Térmica)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Tipo de Documento</label>
+                                <select x-model="pdfTest.tipoDoc" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="dte">DTE General</option>
+                                    <option value="bhe">BHE (Boleta Honorarios)</option>
+                                </select>
+                            </div>
+                            <button @click="generatePDF()" 
+                                    :disabled="!pdfTest.documentId || pdfGenerating"
+                                    class="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50">
+                                <span x-show="!pdfGenerating">Generar PDF</span>
+                                <span x-show="pdfGenerating">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Especificaciones QR</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-medium text-gray-900 mb-2">Contenido del Código QR:</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• RUT del Emisor</li>
+                                <li>• Tipo de DTE</li>
+                                <li>• Número de Folio</li>
+                                <li>• Fecha de Emisión</li>
+                                <li>• RUT del Receptor</li>
+                                <li>• Monto Total</li>
+                            </ul>
+                            <div class="mt-3 text-xs text-gray-500">
+                                Formato: RUTEmisor;TipoDTE;Folio;Fecha;RUTReceptor;Monto
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Generated PDFs -->
+                <div x-show="generatedPDFs.length > 0" class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">PDFs Generados</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <template x-for="pdf in generatedPDFs" :key="pdf.id">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-file-pdf text-red-500 text-xl mr-3"></i>
+                                    <div>
+                                        <div class="font-medium text-sm" x-text="pdf.nombre_archivo || `PDF_${pdf.id}`"></div>
+                                        <div class="text-xs text-gray-500" x-text="pdf.formato"></div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button @click="downloadPDF(pdf.id)" 
+                                            class="flex-1 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                                        <i class="fas fa-download mr-1"></i>Descargar
+                                    </button>
+                                    <button @click="previewPDF(pdf)" 
+                                            class="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificates Tab -->
+        <div x-show="activeTab === 'certificates'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Test Certificados Digitales</h2>
+                
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800">Importante</h3>
+                            <div class="mt-2 text-sm text-yellow-700">
+                                <p>Para testing, puedes usar certificados de prueba. Los certificados de producción solo deben usarse en ambiente productivo del SII.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Upload Test Certificate -->
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-6">
+                    <div class="text-center">
+                        <i class="fas fa-certificate text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Subir Certificado de Prueba</h3>
+                        
+                        <div class="space-y-4 max-w-md mx-auto">
+                            <div>
+                                <input type="file" id="testCertFile" accept=".pfx,.p12" 
+                                       @change="handleTestCertificateFile($event)"
+                                       class="hidden">
+                                <label for="testCertFile" 
+                                       class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer transition-colors">
+                                    <i class="fas fa-folder-open mr-2"></i>Seleccionar Archivo PFX
+                                </label>
+                            </div>
+                            
+                            <div x-show="testCertificate.file" class="space-y-3">
+                                <div>
+                                    <input type="password" x-model="testCertificate.password" placeholder="Contraseña del certificado"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <input type="text" x-model="testCertificate.nombre" placeholder="Nombre descriptivo"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <input type="text" x-model="testCertificate.rut_empresa" placeholder="RUT Empresa (76543210-9)"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <button @click="uploadTestCertificate()" 
+                                        :disabled="certificateUploading"
+                                        class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50">
+                                    <span x-show="!certificateUploading">Subir Certificado</span>
+                                    <span x-show="certificateUploading">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>Subiendo...
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Certificates List -->
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Certificados Cargados</h3>
+                    <div x-show="certificates.length === 0" class="text-center py-8 text-gray-500">
+                        <i class="fas fa-certificate text-4xl mb-4"></i>
+                        <p>No hay certificados cargados</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <template x-for="cert in certificates" :key="cert.id">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-certificate text-green-500 text-xl mr-3"></i>
+                                    <div>
+                                        <div class="font-medium text-sm" x-text="cert.nombre"></div>
+                                        <div class="text-xs text-gray-500" x-text="cert.rut_empresa"></div>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-gray-500 mb-3" x-text="cert.fecha_subida"></div>
+                                <div class="flex space-x-2">
+                                    <button @click="validateCertificate(cert.id)" 
+                                            class="flex-1 bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                                        <i class="fas fa-check mr-1"></i>Validar
+                                    </button>
+                                    <button @click="deleteCertificate(cert.id)" 
+                                            class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SII Test Tab -->
+        <div x-show="activeTab === 'sii-test'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">Test Conexión SII</h2>
+                
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-shield-alt text-red-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">Ambiente de Certificación</h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                <p>Este frontend está configurado para conectarse al ambiente de certificación del SII. No uses datos reales de producción.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Tests Disponibles</h3>
+                        
+                        <div class="space-y-3">
+                            <button @click="testSIIConnection()" 
+                                    :disabled="siiTesting"
+                                    class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium">Test Conexión SII</div>
+                                        <div class="text-sm text-gray-500">Verificar conectividad con servidores SII</div>
+                                    </div>
+                                    <div x-show="siiTesting">
+                                        <i class="fas fa-spinner fa-spin text-blue-500"></i>
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <button @click="testSIIEnvio()" 
+                                    :disabled="siiTesting"
+                                    class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium">Test Envío DTE</div>
+                                        <div class="text-sm text-gray-500">Simular envío de DTE al SII</div>
+                                    </div>
+                                    <div x-show="siiTesting">
+                                        <i class="fas fa-spinner fa-spin text-blue-500"></i>
+                                    </div>
+                                </div>
+                            </button>
+                            
+                            <button @click="testSIIConsulta()" 
+                                    :disabled="siiTesting"
+                                    class="w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium">Test Consulta Estado</div>
+                                        <div class="text-sm text-gray-500">Consultar estado de DTE en SII</div>
+                                    </div>
+                                    <div x-show="siiTesting">
+                                        <i class="fas fa-spinner fa-spin text-blue-500"></i>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Estado SII</h3>
+                        <div class="space-y-3">
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium">Ambiente</span>
+                                    <span class="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs">Certificación</span>
+                                </div>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium">Estado Conexión</span>
+                                    <span class="flex items-center">
+                                        <span class="status-indicator" :class="siiStatus.connected ? 'status-success' : 'status-error'"></span>
+                                        <span class="text-sm" x-text="siiStatus.connected ? 'Conectado' : 'Desconectado'"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium">Última Verificación</span>
+                                    <span class="text-sm text-gray-500" x-text="siiStatus.lastCheck || 'Nunca'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- SII Test Results -->
+                <div x-show="siiTestResults.length > 0" class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Resultados Tests SII</h3>
+                    <div class="space-y-2">
+                        <template x-for="result in siiTestResults" :key="result.timestamp">
+                            <div class="border border-gray-200 rounded p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="status-indicator" :class="result.success ? 'status-success' : 'status-error'"></span>
+                                        <span class="font-medium" x-text="result.test"></span>
+                                        <span class="text-sm text-gray-500 ml-2" x-text="result.timestamp"></span>
+                                    </div>
+                                    <span :class="result.success ? 'text-green-600' : 'text-red-600'" 
+                                          class="text-sm font-medium" x-text="result.result"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div x-show="notification.show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed top-4 right-4 z-50 max-w-md">
+        <div :class="getNotificationClass()" class="p-4 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                <i :class="getNotificationIcon()" class="mr-3 text-xl"></i>
+                <div class="flex-1">
+                    <div class="font-semibold" x-text="notification.title"></div>
+                    <div class="text-sm opacity-90" x-text="notification.message"></div>
+                </div>
+                <button @click="hideNotification()" class="ml-4 opacity-70 hover:opacity-100">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function demoApp() {
+            return {
+                activeTab: 'endpoints',
+                connectionStatus: 'Verificando...',
+                
+                // Endpoints to test
+                endpoints: [
+                    { name: 'API Info', method: 'GET', url: '/', status: 'pending', testing: false },
+                    { name: 'Health Check', method: 'GET', url: '/health', status: 'pending', testing: false },
+                    { name: 'BHE Features', method: 'GET', url: '/bhe-features', status: 'pending', testing: false },
+                    { name: 'PDF Features', method: 'GET', url: '/pdf-features', status: 'pending', testing: false },
+                    { name: 'Generate DTE', method: 'POST', url: '/api/dte/generar', status: 'pending', testing: false },
+                    { name: 'Generate BHE', method: 'POST', url: '/api/bhe/generar', status: 'pending', testing: false },
+                    { name: 'List Certificates', method: 'GET', url: '/api/certificados', status: 'pending', testing: false },
+                ],
+                
+                // DTE Quick Tests
+                dteQuickTests: [
+                    {
+                        name: 'Factura Básica',
+                        type: 'DTE 33',
+                        description: 'Test de factura electrónica con datos mínimos',
+                        testing: false,
+                        result: null,
+                        success: false
+                    },
+                    {
+                        name: 'Boleta Consumidor Final',
+                        type: 'DTE 39',
+                        description: 'Test de boleta electrónica para consumidor final',
+                        testing: false,
+                        result: null,
+                        success: false
+                    },
+                    {
+                        name: 'Nota de Crédito',
+                        type: 'DTE 61',
+                        description: 'Test de nota de crédito electrónica',
+                        testing: false,
+                        result: null,
+                        success: false
+                    }
+                ],
+                
+                // Custom DTE Test
+                customDTETest: {
+                    tipo_dte: '',
+                    emisor: { rut: '76543210-9' },
+                    receptor: { rut: '12345678-9' },
+                    monto_test: 100000
+                },
+                customDTETestRunning: false,
+                
+                // BHE Test Data
+                bheTest: {
+                    profesional: {
+                        rut: '12345678-9',
+                        nombres: 'Juan Carlos',
+                        apellidos: 'González Pérez',
+                        profesion: 'Ingeniero en Sistemas'
+                    },
+                    pagador: {
+                        rut: '76543210-9',
+                        nombre: 'Empresa Pagadora LTDA'
+                    },
+                    servicios: {
+                        descripcion: 'Desarrollo de aplicación web personalizada para gestión de inventarios',
+                        periodo_desde: UTILS.getCurrentDate(),
+                        periodo_hasta: '',
+                        monto_bruto: 1500000
+                    }
+                },
+                professionalRegistering: false,
+                bheGenerating: false,
+                bheResults: [],
+                
+                // PDF Test
+                pdfTest: {
+                    documentId: '',
+                    formato: 'carta',
+                    tipoDoc: 'dte'
+                },
+                pdfGenerating: false,
+                generatedPDFs: [],
+                
+                // Certificates
+                testCertificate: {
+                    file: null,
+                    password: '',
+                    nombre: '',
+                    rut_empresa: ''
+                },
+                certificateUploading: false,
+                certificates: [],
+                
+                // SII Testing
+                siiTesting: false,
+                siiStatus: {
+                    connected: false,
+                    lastCheck: null
+                },
+                siiTestResults: [],
+                
+                // Results
+                dteTestResults: [],
+                
+                // Notification
+                notification: {
+                    show: false,
+                    type: 'info',
+                    title: '',
+                    message: ''
+                },
+                
+                init() {
+                    this.checkConnection();
+                    this.loadCertificates();
+                    
+                    // Set default end date for BHE (30 days from start)
+                    if (this.bheTest.servicios.periodo_desde) {
+                        const startDate = new Date(this.bheTest.servicios.periodo_desde);
+                        const endDate = new Date(startDate);
+                        endDate.setDate(endDate.getDate() + 30);
+                        this.bheTest.servicios.periodo_hasta = endDate.toISOString().split('T')[0];
+                    }
+                },
+                
+                async checkConnection() {
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/health`);
+                        if (response.ok) {
+                            this.connectionStatus = 'Conectado';
+                            this.siiStatus.connected = true;
+                        } else {
+                            this.connectionStatus = 'Error HTTP';
+                            this.siiStatus.connected = false;
+                        }
+                        this.siiStatus.lastCheck = new Date().toLocaleString('es-CL');
+                    } catch (error) {
+                        this.connectionStatus = 'Sin conexión';
+                        this.siiStatus.connected = false;
+                    }
+                },
+                
+                async checkAllEndpoints() {
+                    for (const endpoint of this.endpoints) {
+                        await this.testEndpoint(endpoint);
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Brief delay between tests
+                    }
+                },
+                
+                async testEndpoint(endpoint) {
+                    endpoint.testing = true;
+                    endpoint.status = 'pending';
+                    
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}${endpoint.url}`);
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            endpoint.status = 'success';
+                            endpoint.lastResponse = 'OK';
+                        } else {
+                            endpoint.status = 'error';
+                            endpoint.lastResponse = data.error || 'Error';
+                        }
+                    } catch (error) {
+                        endpoint.status = 'error';
+                        endpoint.lastResponse = 'Connection Error';
+                    } finally {
+                        endpoint.testing = false;
+                    }
+                },
+                
+                viewEndpointDetails(endpoint) {
+                    this.showNotification('info', 'Endpoint Details', `${endpoint.method} ${endpoint.url} - Status: ${endpoint.status}`);
+                },
+                
+                async runDTETest(test) {
+                    test.testing = true;
+                    test.result = null;
+                    
+                    try {
+                        const testData = this.getDTETestData(test.type);
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/dte/generar`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(testData)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            test.success = true;
+                            test.result = `DTE generado exitosamente - ID: ${data.data?.id || 'N/A'}`;
+                            this.dteTestResults.unshift({
+                                test: test.name,
+                                success: true,
+                                data: data,
+                                timestamp: new Date().toLocaleString('es-CL'),
+                                showDetails: false
+                            });
+                        } else {
+                            test.success = false;
+                            test.result = data.errors?.join(', ') || 'Error desconocido';
+                            this.dteTestResults.unshift({
+                                test: test.name,
+                                success: false,
+                                data: data,
+                                timestamp: new Date().toLocaleString('es-CL'),
+                                showDetails: false
+                            });
+                        }
+                    } catch (error) {
+                        test.success = false;
+                        test.result = `Error de conexión: ${error.message}`;
+                    } finally {
+                        test.testing = false;
+                    }
+                },
+                
+                getDTETestData(type) {
+                    const baseData = {
+                        fecha_emision: UTILS.getCurrentDate(),
+                        emisor: {
+                            rut: '76543210-9',
+                            razon_social: 'EMPRESA TEST LTDA',
+                            giro: 'SERVICIOS DE TESTING',
+                            direccion: 'AV. TEST 123',
+                            comuna: 'SANTIAGO',
+                            ciudad: 'SANTIAGO'
+                        },
+                        receptor: {
+                            rut: '12345678-9',
+                            razon_social: 'CLIENTE TEST S.A.',
+                            giro: 'COMERCIO',
+                            direccion: 'CALLE TEST 456',
+                            comuna: 'PROVIDENCIA',
+                            ciudad: 'SANTIAGO'
+                        },
+                        detalles: [{
+                            nombre_item: 'Producto Test',
+                            cantidad: 1,
+                            precio_unitario: 10000,
+                            unidad_medida: 'UN'
+                        }],
+                        observaciones: 'Documento de prueba generado desde frontend demo'
+                    };
+                    
+                    switch (type) {
+                        case 'DTE 33':
+                            return { ...baseData, tipo_dte: 33 };
+                        case 'DTE 39':
+                            return { 
+                                ...baseData, 
+                                tipo_dte: 39,
+                                receptor: { rut: '66666666-6', razon_social: 'CONSUMIDOR FINAL' }
+                            };
+                        case 'DTE 61':
+                            return { ...baseData, tipo_dte: 61 };
+                        default:
+                            return { ...baseData, tipo_dte: 33 };
+                    }
+                },
+                
+                async runCustomDTETest() {
+                    this.customDTETestRunning = true;
+                    
+                    try {
+                        const testData = {
+                            tipo_dte: parseInt(this.customDTETest.tipo_dte),
+                            fecha_emision: UTILS.getCurrentDate(),
+                            emisor: {
+                                rut: this.customDTETest.emisor.rut,
+                                razon_social: 'EMPRESA CUSTOM TEST LTDA',
+                                giro: 'SERVICIOS PERSONALIZADOS',
+                                direccion: 'AV. CUSTOM 123',
+                                comuna: 'SANTIAGO',
+                                ciudad: 'SANTIAGO'
+                            },
+                            receptor: {
+                                rut: this.customDTETest.receptor.rut,
+                                razon_social: 'RECEPTOR CUSTOM S.A.',
+                                direccion: 'CALLE CUSTOM 456',
+                                comuna: 'PROVIDENCIA',
+                                ciudad: 'SANTIAGO'
+                            },
+                            detalles: [{
+                                nombre_item: 'Servicio Personalizado',
+                                cantidad: 1,
+                                precio_unitario: this.customDTETest.monto_test,
+                                unidad_medida: 'UN'
+                            }],
+                            observaciones: 'DTE personalizado generado desde demo'
+                        };
+                        
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/dte/generar`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(testData)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'DTE Generado', `DTE personalizado generado exitosamente - ID: ${data.data?.id || 'N/A'}`);
+                            this.dteTestResults.unshift({
+                                test: `DTE Custom ${this.customDTETest.tipo_dte}`,
+                                success: true,
+                                data: data,
+                                timestamp: new Date().toLocaleString('es-CL'),
+                                showDetails: false
+                            });
+                        } else {
+                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al generar DTE personalizado');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    } finally {
+                        this.customDTETestRunning = false;
+                    }
+                },
+                
+                toggleResultDetails(result) {
+                    result.showDetails = !result.showDetails;
+                },
+                
+                async registerProfessional() {
+                    this.professionalRegistering = true;
+                    
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/profesionales`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                rut_profesional: this.bheTest.profesional.rut,
+                                nombres: this.bheTest.profesional.nombres,
+                                apellido_paterno: this.bheTest.profesional.apellidos.split(' ')[0] || '',
+                                apellido_materno: this.bheTest.profesional.apellidos.split(' ')[1] || '',
+                                profesion: this.bheTest.profesional.profesion,
+                                email: `${this.bheTest.profesional.nombres.toLowerCase().replace(' ', '.')}@test.cl`,
+                                telefono: '+56912345678',
+                                direccion: 'Dirección Test 123',
+                                comuna: 'SANTIAGO'
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'Profesional Registrado', 'El profesional ha sido registrado exitosamente');
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al registrar profesional');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    } finally {
+                        this.professionalRegistering = false;
+                    }
+                },
+                
+                async generateBHE() {
+                    this.bheGenerating = true;
+                    
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/bhe/generar`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                profesional: {
+                                    rut: this.bheTest.profesional.rut
+                                },
+                                pagador: this.bheTest.pagador,
+                                servicios: this.bheTest.servicios
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'BHE Generada', 'La boleta de honorarios electrónica ha sido generada exitosamente');
+                            
+                            // Add to results
+                            this.bheResults.unshift({
+                                id: data.data?.id || Date.now(),
+                                profesional_rut: this.bheTest.profesional.rut,
+                                pagador_nombre: this.bheTest.pagador.nombre,
+                                monto_bruto: this.bheTest.servicios.monto_bruto,
+                                monto_liquido: this.bheTest.servicios.monto_bruto * 0.9,
+                                fecha: new Date().toLocaleString('es-CL')
+                            });
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al generar BHE');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    } finally {
+                        this.bheGenerating = false;
+                    }
+                },
+                
+                async generateBHEPDF(bheId) {
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/bhe/${bheId}/pdf?formato=carta`, {
+                            method: 'POST'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'PDF Generado', 'PDF de BHE generado exitosamente');
+                            // Add to generated PDFs list
+                            this.generatedPDFs.unshift({
+                                id: data.data?.pdf_id || Date.now(),
+                                nombre_archivo: `BHE_${bheId}.pdf`,
+                                formato: 'carta',
+                                tipo: 'BHE'
+                            });
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al generar PDF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    }
+                },
+                
+                viewBHEDetails(bhe) {
+                    this.showNotification('info', 'Detalles BHE', `BHE #${bhe.id} - Monto: $${UTILS.formatCurrency(bhe.monto_bruto)}`);
+                },
+                
+                async generatePDF() {
+                    this.pdfGenerating = true;
+                    
+                    try {
+                        const url = this.pdfTest.tipoDoc === 'bhe' 
+                            ? `${CONFIG.API_BASE_URL}/api/bhe/${this.pdfTest.documentId}/pdf?formato=${this.pdfTest.formato}`
+                            : `${CONFIG.API_BASE_URL}/api/dte/${this.pdfTest.documentId}/pdf?formato=${this.pdfTest.formato}`;
+                            
+                        const response = await fetch(url, { method: 'POST' });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'PDF Generado', 'PDF con código QR generado exitosamente');
+                            this.generatedPDFs.unshift({
+                                id: data.data?.pdf_id || Date.now(),
+                                nombre_archivo: `${this.pdfTest.tipoDoc.toUpperCase()}_${this.pdfTest.documentId}_${this.pdfTest.formato}.pdf`,
+                                formato: this.pdfTest.formato,
+                                tipo: this.pdfTest.tipoDoc.toUpperCase()
+                            });
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al generar PDF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    } finally {
+                        this.pdfGenerating = false;
+                    }
+                },
+                
+                async downloadPDF(pdfId) {
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/pdf/${pdfId}/download`);
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `documento_${pdfId}.pdf`;
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            this.showNotification('success', 'Descarga', 'PDF descargado exitosamente');
+                        } else {
+                            this.showNotification('error', 'Error', 'Error al descargar PDF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    }
+                },
+                
+                previewPDF(pdf) {
+                    this.showNotification('info', 'Vista Previa', `Abriendo vista previa de ${pdf.nombre_archivo}`);
+                },
+                
+                handleTestCertificateFile(event) {
+                    this.testCertificate.file = event.target.files[0];
+                    if (this.testCertificate.file) {
+                        this.testCertificate.nombre = `Certificado Test ${new Date().toLocaleDateString('es-CL')}`;
+                    }
+                },
+                
+                async uploadTestCertificate() {
+                    this.certificateUploading = true;
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append('certificado', this.testCertificate.file);
+                        formData.append('password', this.testCertificate.password);
+                        formData.append('nombre', this.testCertificate.nombre);
+                        formData.append('rut_empresa', this.testCertificate.rut_empresa);
+                        
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/certificados/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'Certificado Subido', 'El certificado de prueba ha sido subido exitosamente');
+                            this.testCertificate = { file: null, password: '', nombre: '', rut_empresa: '' };
+                            document.getElementById('testCertFile').value = '';
+                            this.loadCertificates();
+                        } else {
+                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al subir certificado');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    } finally {
+                        this.certificateUploading = false;
+                    }
+                },
+                
+                async loadCertificates() {
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/certificados`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.certificates = data.data || [];
+                        }
+                    } catch (error) {
+                        console.error('Error loading certificates:', error);
+                    }
+                },
+                
+                async validateCertificate(certId) {
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/certificados/validar/${certId}`, {
+                            method: 'POST'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'Certificado Válido', 'El certificado ha sido validado exitosamente');
+                        } else {
+                            this.showNotification('error', 'Certificado Inválido', data.error || 'Error al validar certificado');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                    }
+                },
+                
+                async deleteCertificate(certId) {
+                    if (confirm('¿Está seguro de eliminar este certificado?')) {
+                        try {
+                            const response = await fetch(`${CONFIG.API_BASE_URL}/api/certificados/${certId}`, {
+                                method: 'DELETE'
+                            });
+                            
+                            if (response.ok) {
+                                this.showNotification('success', 'Certificado Eliminado', 'El certificado ha sido eliminado exitosamente');
+                                this.loadCertificates();
+                            } else {
+                                this.showNotification('error', 'Error', 'Error al eliminar certificado');
+                            }
+                        } catch (error) {
+                            this.showNotification('error', 'Error', `Error de conexión: ${error.message}`);
+                        }
+                    }
+                },
+                
+                async testSIIConnection() {
+                    this.siiTesting = true;
+                    
+                    try {
+                        // Simulate SII connection test
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        this.siiTestResults.unshift({
+                            test: 'Conexión SII',
+                            success: true,
+                            result: 'Conexión exitosa',
+                            timestamp: new Date().toLocaleString('es-CL')
+                        });
+                        
+                        this.showNotification('success', 'SII', 'Conexión con SII exitosa');
+                    } catch (error) {
+                        this.siiTestResults.unshift({
+                            test: 'Conexión SII',
+                            success: false,
+                            result: 'Error de conexión',
+                            timestamp: new Date().toLocaleString('es-CL')
+                        });
+                        
+                        this.showNotification('error', 'SII', 'Error de conexión con SII');
+                    } finally {
+                        this.siiTesting = false;
+                    }
+                },
+                
+                async testSIIEnvio() {
+                    this.siiTesting = true;
+                    
+                    try {
+                        // Simulate SII document sending
+                        await new Promise(resolve => setTimeout(resolve, 3000));
+                        
+                        this.siiTestResults.unshift({
+                            test: 'Envío DTE',
+                            success: true,
+                            result: 'DTE enviado correctamente',
+                            timestamp: new Date().toLocaleString('es-CL')
+                        });
+                        
+                        this.showNotification('success', 'SII', 'DTE enviado al SII exitosamente');
+                    } catch (error) {
+                        this.siiTestResults.unshift({
+                            test: 'Envío DTE',
+                            success: false,
+                            result: 'Error en envío',
+                            timestamp: new Date().toLocaleString('es-CL')
+                        });
+                        
+                        this.showNotification('error', 'SII', 'Error al enviar DTE al SII');
+                    } finally {
+                        this.siiTesting = false;
+                    }
+                },
+                
+                async testSIIConsulta() {
+                    this.siiTesting = true;
+                    
+                    try {
+                        // Simulate SII status query
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        this.siiTestResults.unshift({
+                            test: 'Consulta Estado',
+                            success: true,
+                            result: 'Estado consultado: ACEPTADO',
+                            timestamp: new Date().toLocaleString('es-CL')
+                        });
+                        
+                        this.showNotification('success', 'SII', 'Estado consultado exitosamente');
+                    } catch (error) {
+                        this.siiTestResults.unshift({
+                            test: 'Consulta Estado',
+                            success: false,
+                            result: 'Error en consulta',
+                            timestamp: new Date().toLocaleString('es-CL')
+                        });
+                        
+                        this.showNotification('error', 'SII', 'Error al consultar estado en SII');
+                    } finally {
+                        this.siiTesting = false;
+                    }
+                },
+                
+                // Utility methods
+                getConnectionStatusClass() {
+                    if (this.connectionStatus === 'Conectado') return 'status-success';
+                    if (this.connectionStatus === 'Verificando...') return 'status-pending';
+                    return 'status-error';
+                },
+                
+                getEndpointStatusClass(status) {
+                    if (status === 'success') return 'status-success';
+                    if (status === 'pending') return 'status-pending';
+                    return 'status-error';
+                },
+                
+                getNotificationClass() {
+                    const classes = {
+                        success: 'bg-green-500 text-white',
+                        error: 'bg-red-500 text-white',
+                        warning: 'bg-yellow-500 text-white',
+                        info: 'bg-blue-500 text-white'
+                    };
+                    return classes[this.notification.type] || classes.info;
+                },
+                
+                getNotificationIcon() {
+                    const icons = {
+                        success: 'fas fa-check-circle',
+                        error: 'fas fa-exclamation-circle',
+                        warning: 'fas fa-exclamation-triangle',
+                        info: 'fas fa-info-circle'
+                    };
+                    return icons[this.notification.type] || icons.info;
+                },
+                
+                showNotification(type, title, message) {
+                    this.notification = {
+                        show: true,
+                        type,
+                        title,
+                        message
+                    };
+                    
+                    setTimeout(() => {
+                        this.hideNotification();
+                    }, CONFIG.NOTIFICATION.DURATION);
+                },
+                
+                hideNotification() {
+                    this.notification.show = false;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

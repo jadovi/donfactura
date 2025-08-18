@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DonFactura - Plataforma de Facturación Electrónica Chile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Para development - en producción usar Tailwind compilado -->
+    <script>
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            console.warn('TailwindCSS CDN detectado en producción - compilar para mejor rendimiento');
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="./config.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'chile-blue': '#0052CC',
+                        'chile-red': '#D73027',
+                        'chile-white': '#FFFFFF'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50" x-data="appData()">
+    <!-- Navbar -->
+    <nav class="bg-chile-blue text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <h1 class="text-xl font-bold">🧾 DonFactura</h1>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-4">
+                            <button @click="currentView = 'dashboard'" 
+                                    :class="currentView === 'dashboard' ? 'bg-chile-red' : 'hover:bg-blue-700'" 
+                                    class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </button>
+                            <button @click="currentView = 'dte'" 
+                                    :class="currentView === 'dte' ? 'bg-chile-red' : 'hover:bg-blue-700'" 
+                                    class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-file-invoice mr-2"></i>Generar DTE
+                            </button>
+                            <button @click="currentView = 'bhe'" 
+                                    :class="currentView === 'bhe' ? 'bg-chile-red' : 'hover:bg-blue-700'" 
+                                    class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-receipt mr-2"></i>BHE
+                            </button>
+                            <button @click="currentView = 'certificates'" 
+                                    :class="currentView === 'certificates' ? 'bg-chile-red' : 'hover:bg-blue-700'" 
+                                    class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-certificate mr-2"></i>Certificados
+                            </button>
+                            <button @click="currentView = 'pdf'" 
+                                    :class="currentView === 'pdf' ? 'bg-chile-red' : 'hover:bg-blue-700'" 
+                                    class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-file-pdf mr-2"></i>PDF & QR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="text-sm">
+                        <span class="text-green-300" x-text="connectionStatus"></span>
+                    </div>
+                    <div class="relative">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Certificación SII
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <!-- Dashboard View -->
+        <div x-show="currentView === 'dashboard'" class="space-y-6">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        <i class="fas fa-chart-bar mr-2 text-chile-blue"></i>Panel de Control
+                    </h3>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-4 rounded-lg text-white">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-file-invoice text-2xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-2xl font-bold" x-text="stats.totalDTE"></div>
+                                    <div class="text-blue-100">DTE Generados</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-green-500 to-green-600 p-4 rounded-lg text-white">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-receipt text-2xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-2xl font-bold" x-text="stats.totalBHE"></div>
+                                    <div class="text-green-100">BHE Generadas</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-4 rounded-lg text-white">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-file-pdf text-2xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-2xl font-bold" x-text="stats.totalPDF"></div>
+                                    <div class="text-purple-100">PDFs Generados</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-4 rounded-lg text-white">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-certificate text-2xl"></i>
+                                </div>
+                                <div class="ml-4">
+                                    <div class="text-2xl font-bold" x-text="stats.totalCertificates"></div>
+                                    <div class="text-orange-100">Certificados</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Documents -->
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="text-md font-medium text-gray-900 mb-3">
+                            <i class="fas fa-clock mr-2"></i>Documentos Recientes
+                        </h4>
+                        <div class="space-y-2">
+                            <template x-for="doc in recentDocuments">
+                                <div class="flex items-center justify-between p-3 bg-white rounded border">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                                  :class="getDocumentTypeColor(doc.type)">
+                                                <span x-text="doc.type"></span>
+                                            </span>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900" x-text="doc.title"></div>
+                                            <div class="text-sm text-gray-500" x-text="doc.date"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex space-x-2">
+                                        <button class="text-blue-600 hover:text-blue-800">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-green-600 hover:text-green-800">
+                                            <i class="fas fa-download"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DTE Generation View -->
+        <div x-show="currentView === 'dte'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                    <i class="fas fa-file-invoice mr-2 text-chile-blue"></i>Generar Documento Tributario Electrónico
+                </h3>
+                
+                <!-- DTE Type Selection -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de DTE</label>
+                    <select x-model="dteForm.tipo_dte" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue focus:border-transparent">
+                        <option value="">Seleccione tipo de DTE</option>
+                        <option value="33">33 - Factura Electrónica</option>
+                        <option value="34">34 - Factura Electrónica Exenta</option>
+                        <option value="39">39 - Boleta Electrónica</option>
+                        <option value="45">45 - Factura de Compra Electrónica</option>
+                        <option value="56">56 - Nota de Débito Electrónica</option>
+                        <option value="61">61 - Nota de Crédito Electrónica</option>
+                    </select>
+                </div>
+
+                <!-- Form Sections -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Emisor Section -->
+                    <div class="space-y-4">
+                        <h4 class="text-md font-semibold text-gray-900 border-b pb-2">
+                            <i class="fas fa-building mr-2"></i>Datos del Emisor
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">RUT Emisor</label>
+                                <input type="text" x-model="dteForm.emisor.rut" placeholder="76543210-9"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Razón Social</label>
+                                <input type="text" x-model="dteForm.emisor.razon_social"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Giro</label>
+                                <input type="text" x-model="dteForm.emisor.giro"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Dirección</label>
+                                <input type="text" x-model="dteForm.emisor.direccion"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Comuna</label>
+                                    <input type="text" x-model="dteForm.emisor.comuna"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Ciudad</label>
+                                    <input type="text" x-model="dteForm.emisor.ciudad"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Receptor Section -->
+                    <div class="space-y-4">
+                        <h4 class="text-md font-semibold text-gray-900 border-b pb-2">
+                            <i class="fas fa-user mr-2"></i>Datos del Receptor
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">RUT Receptor</label>
+                                <input type="text" x-model="dteForm.receptor.rut" placeholder="12345678-9"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Razón Social</label>
+                                <input type="text" x-model="dteForm.receptor.razon_social"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Giro</label>
+                                <input type="text" x-model="dteForm.receptor.giro"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Dirección</label>
+                                <input type="text" x-model="dteForm.receptor.direccion"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Comuna</label>
+                                    <input type="text" x-model="dteForm.receptor.comuna"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Ciudad</label>
+                                    <input type="text" x-model="dteForm.receptor.ciudad"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <div class="mt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-md font-semibold text-gray-900">
+                            <i class="fas fa-list mr-2"></i>Detalles del Documento
+                        </h4>
+                        <button @click="addDTEItem()" 
+                                class="bg-chile-blue text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Agregar Item
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Unit.</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <template x-for="(item, index) in dteForm.detalles" :key="index">
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="text" x-model="item.nombre_item" placeholder="Nombre del producto/servicio"
+                                                   class="w-full px-2 py-1 border border-gray-300 rounded text-sm">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="number" x-model="item.cantidad" placeholder="1"
+                                                   class="w-20 px-2 py-1 border border-gray-300 rounded text-sm">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <input type="number" x-model="item.precio_unitario" placeholder="0"
+                                                   class="w-24 px-2 py-1 border border-gray-300 rounded text-sm">
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            $<span x-text="formatCurrency(item.cantidad * item.precio_unitario)"></span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button @click="removeDTEItem(index)" 
+                                                    class="text-red-600 hover:text-red-900">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Observaciones -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Observaciones</label>
+                    <textarea x-model="dteForm.observaciones" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue"
+                              placeholder="Información adicional del documento"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-6 flex space-x-4">
+                    <button @click="generateDTE()" 
+                            :disabled="loading"
+                            class="bg-chile-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                        <span x-show="!loading">
+                            <i class="fas fa-file-invoice mr-2"></i>Generar DTE
+                        </span>
+                        <span x-show="loading">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
+                        </span>
+                    </button>
+                    <button @click="resetDTEForm()" 
+                            class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-undo mr-2"></i>Limpiar Formulario
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BHE View -->
+        <div x-show="currentView === 'bhe'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                    <i class="fas fa-receipt mr-2 text-chile-blue"></i>Boletas de Honorarios Electrónicas (BHE)
+                </h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Profesional Section -->
+                    <div class="space-y-4">
+                        <h4 class="text-md font-semibold text-gray-900 border-b pb-2">
+                            <i class="fas fa-user-tie mr-2"></i>Datos del Profesional
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">RUT Profesional</label>
+                                <input type="text" x-model="bheForm.profesional.rut" placeholder="12345678-9"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Observaciones</label>
+                                <textarea x-model="bheForm.profesional.observaciones" rows="2"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue"
+                                          placeholder="Información adicional del profesional"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagador Section -->
+                    <div class="space-y-4">
+                        <h4 class="text-md font-semibold text-gray-900 border-b pb-2">
+                            <i class="fas fa-building mr-2"></i>Datos del Pagador
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">RUT Pagador</label>
+                                <input type="text" x-model="bheForm.pagador.rut" placeholder="76543210-9"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nombre/Razón Social</label>
+                                <input type="text" x-model="bheForm.pagador.nombre"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Dirección</label>
+                                <input type="text" x-model="bheForm.pagador.direccion"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Comuna</label>
+                                <input type="text" x-model="bheForm.pagador.comuna"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services Section -->
+                <div class="mt-6 space-y-4">
+                    <h4 class="text-md font-semibold text-gray-900 border-b pb-2">
+                        <i class="fas fa-cogs mr-2"></i>Detalles del Servicio
+                    </h4>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Descripción del Servicio</label>
+                                <textarea x-model="bheForm.servicios.descripcion" rows="3"
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue"
+                                          placeholder="Descripción detallada del servicio prestado"></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Período Desde</label>
+                                    <input type="date" x-model="bheForm.servicios.periodo_desde"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Período Hasta</label>
+                                    <input type="date" x-model="bheForm.servicios.periodo_hasta"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Monto Bruto</label>
+                                <input type="number" x-model="bheForm.servicios.monto_bruto"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Porcentaje Retención (%)</label>
+                                <input type="number" x-model="bheForm.servicios.porcentaje_retencion" value="10" step="0.1"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="text-sm text-gray-600">
+                                    <div>Monto Bruto: $<span x-text="formatCurrency(bheForm.servicios.monto_bruto || 0)"></span></div>
+                                    <div>Retención (10%): $<span x-text="formatCurrency((bheForm.servicios.monto_bruto || 0) * 0.1)"></span></div>
+                                    <div class="font-semibold">Líquido a Pagar: $<span x-text="formatCurrency((bheForm.servicios.monto_bruto || 0) * 0.9)"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="mt-6 flex space-x-4">
+                    <button @click="generateBHE()" 
+                            :disabled="loading"
+                            class="bg-chile-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                        <span x-show="!loading">
+                            <i class="fas fa-receipt mr-2"></i>Generar BHE
+                        </span>
+                        <span x-show="loading">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
+                        </span>
+                    </button>
+                    <button @click="resetBHEForm()" 
+                            class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-undo mr-2"></i>Limpiar Formulario
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificates View -->
+        <div x-show="currentView === 'certificates'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                    <i class="fas fa-certificate mr-2 text-chile-blue"></i>Gestión de Certificados Digitales
+                </h3>
+                
+                <!-- Upload Certificate -->
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 mb-6">
+                    <div class="text-center">
+                        <i class="fas fa-upload text-4xl text-gray-400 mb-4"></i>
+                        <h4 class="text-lg font-medium text-gray-900 mb-2">Subir Certificado Digital</h4>
+                        <p class="text-gray-600 mb-4">Sube tu archivo .pfx para firmar documentos electrónicos</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <input type="file" id="certificateFile" accept=".pfx,.p12" 
+                                       @change="handleCertificateFile($event)"
+                                       class="hidden">
+                                <label for="certificateFile" 
+                                       class="bg-chile-blue text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer transition-colors">
+                                    <i class="fas fa-folder-open mr-2"></i>Seleccionar Archivo PFX
+                                </label>
+                            </div>
+                            
+                            <div x-show="certificateForm.file" class="space-y-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Contraseña del Certificado</label>
+                                    <input type="password" x-model="certificateForm.password"
+                                           class="w-full max-w-md mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Nombre Descriptivo</label>
+                                    <input type="text" x-model="certificateForm.nombre" placeholder="Ej: Certificado Empresa 2024"
+                                           class="w-full max-w-md mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">RUT Empresa</label>
+                                    <input type="text" x-model="certificateForm.rut_empresa" placeholder="76543210-9"
+                                           class="w-full max-w-md mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <button @click="uploadCertificate()" 
+                                        :disabled="loading"
+                                        class="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors">
+                                    <span x-show="!loading">
+                                        <i class="fas fa-upload mr-2"></i>Subir Certificado
+                                    </span>
+                                    <span x-show="loading">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>Subiendo...
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Certificates List -->
+                <div>
+                    <h4 class="text-md font-semibold text-gray-900 mb-4">Certificados Disponibles</h4>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <template x-for="cert in certificates">
+                            <div class="flex items-center justify-between p-4 bg-white rounded border mb-2">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-certificate text-2xl text-green-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900" x-text="cert.nombre"></div>
+                                        <div class="text-sm text-gray-500">RUT: <span x-text="cert.rut_empresa"></span></div>
+                                        <div class="text-sm text-gray-500">Subido: <span x-text="cert.fecha_subida"></span></div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-800">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="text-green-600 hover:text-green-800">
+                                        <i class="fas fa-check-circle"></i>
+                                    </button>
+                                    <button class="text-red-600 hover:text-red-800">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <div x-show="certificates.length === 0" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-certificate text-4xl mb-4"></i>
+                            <p>No hay certificados cargados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF & QR View -->
+        <div x-show="currentView === 'pdf'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                    <i class="fas fa-file-pdf mr-2 text-chile-blue"></i>Generación de PDF con Código QR
+                </h3>
+                
+                <!-- Document Selection -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-md font-semibold text-gray-900 mb-4">Seleccionar Documento</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">ID del Documento</label>
+                                <input type="number" x-model="pdfForm.documentId" placeholder="123"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Formato del PDF</label>
+                                <select x-model="pdfForm.formato" 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                    <option value="carta">Carta (21.5x27.9cm) - Archivo</option>
+                                    <option value="80mm">80mm - Impresora Térmica</option>
+                                </select>
+                            </div>
+                            <button @click="generatePDF()" 
+                                    :disabled="loading"
+                                    class="w-full bg-chile-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                                <span x-show="!loading">
+                                    <i class="fas fa-file-pdf mr-2"></i>Generar PDF
+                                </span>
+                                <span x-show="loading">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-md font-semibold text-gray-900 mb-4">Información del QR</h4>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-sm text-gray-600 mb-3">
+                                El código QR incluye la siguiente información según estándares del SII:
+                            </p>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li>• RUT del Emisor</li>
+                                <li>• Tipo de DTE</li>
+                                <li>• Número de Folio</li>
+                                <li>• Fecha de Emisión</li>
+                                <li>• RUT del Receptor</li>
+                                <li>• Monto Total</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generated PDFs -->
+                <div class="mt-8">
+                    <h4 class="text-md font-semibold text-gray-900 mb-4">PDFs Generados</h4>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <template x-for="pdf in generatedPDFs">
+                            <div class="flex items-center justify-between p-4 bg-white rounded border mb-2">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-file-pdf text-2xl text-red-600"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900" x-text="pdf.nombre_archivo"></div>
+                                        <div class="text-sm text-gray-500">Formato: <span x-text="pdf.formato"></span></div>
+                                        <div class="text-sm text-gray-500">Generado: <span x-text="pdf.fecha_generacion"></span></div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button @click="downloadPDF(pdf.id)" 
+                                            class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition-colors">
+                                        <i class="fas fa-download mr-1"></i>Descargar
+                                    </button>
+                                    <button class="text-gray-600 hover:text-gray-800">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <div x-show="generatedPDFs.length === 0" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-file-pdf text-4xl mb-4"></i>
+                            <p>No hay PDFs generados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div x-show="notification.show" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed top-4 right-4 z-50">
+        <div :class="notification.type === 'success' ? 'bg-green-500' : notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'" 
+             class="text-white px-6 py-4 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                <i :class="notification.type === 'success' ? 'fas fa-check-circle' : notification.type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle'" 
+                   class="mr-3"></i>
+                <div>
+                    <div class="font-semibold" x-text="notification.title"></div>
+                    <div class="text-sm" x-text="notification.message"></div>
+                </div>
+                <button @click="hideNotification()" class="ml-4 text-white hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div x-show="loading" 
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100">
+                    <i class="fas fa-spinner fa-spin text-blue-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Procesando...</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        Por favor espera mientras procesamos tu solicitud.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const API_BASE_URL = CONFIG.API_BASE_URL + '/api';
+        
+        function appData() {
+            return {
+                currentView: 'dashboard',
+                loading: false,
+                connectionStatus: 'Conectado',
+                
+                // Stats
+                stats: {
+                    totalDTE: 0,
+                    totalBHE: 0,
+                    totalPDF: 0,
+                    totalCertificates: 0
+                },
+                
+                // Recent documents
+                recentDocuments: [],
+                
+                // DTE Form
+                dteForm: {
+                    tipo_dte: '',
+                    fecha_emision: new Date().toISOString().split('T')[0],
+                    emisor: {
+                        rut: '',
+                        razon_social: '',
+                        giro: '',
+                        direccion: '',
+                        comuna: '',
+                        ciudad: ''
+                    },
+                    receptor: {
+                        rut: '',
+                        razon_social: '',
+                        giro: '',
+                        direccion: '',
+                        comuna: '',
+                        ciudad: ''
+                    },
+                    detalles: [
+                        {
+                            nombre_item: '',
+                            cantidad: 1,
+                            precio_unitario: 0,
+                            unidad_medida: 'UN'
+                        }
+                    ],
+                    observaciones: ''
+                },
+                
+                // BHE Form
+                bheForm: {
+                    profesional: {
+                        rut: '',
+                        observaciones: ''
+                    },
+                    pagador: {
+                        rut: '',
+                        nombre: '',
+                        direccion: '',
+                        comuna: ''
+                    },
+                    servicios: {
+                        descripcion: '',
+                        periodo_desde: '',
+                        periodo_hasta: '',
+                        monto_bruto: 0,
+                        porcentaje_retencion: 10
+                    }
+                },
+                
+                // Certificate Form
+                certificateForm: {
+                    file: null,
+                    password: '',
+                    nombre: '',
+                    rut_empresa: ''
+                },
+                
+                // PDF Form
+                pdfForm: {
+                    documentId: '',
+                    formato: 'carta'
+                },
+                
+                // Data arrays
+                certificates: [],
+                generatedPDFs: [],
+                
+                // Notification
+                notification: {
+                    show: false,
+                    type: 'info',
+                    title: '',
+                    message: ''
+                },
+                
+                // Methods
+                init() {
+                    this.loadData();
+                    this.checkConnection();
+                },
+                
+                async loadData() {
+                    try {
+                        // Load certificates
+                        const certsResponse = await fetch(`${API_BASE_URL}/certificados`);
+                        if (certsResponse.ok) {
+                            const certsData = await certsResponse.json();
+                            this.certificates = certsData.data || [];
+                            this.stats.totalCertificates = this.certificates.length;
+                        }
+                        
+                        // Load recent documents (mock data for now)
+                        this.recentDocuments = [
+                            {
+                                type: 'Factura 33',
+                                title: 'Factura #1001',
+                                date: '2024-12-20',
+                                id: 1
+                            },
+                            {
+                                type: 'BHE 41',
+                                title: 'BHE #501',
+                                date: '2024-12-19',
+                                id: 2
+                            }
+                        ];
+                        
+                    } catch (error) {
+                        console.error('Error loading data:', error);
+                    }
+                },
+                
+                async checkConnection() {
+                    try {
+                        const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+                        if (response.ok) {
+                            this.connectionStatus = 'Conectado';
+                        } else {
+                            this.connectionStatus = 'Desconectado';
+                        }
+                    } catch (error) {
+                        this.connectionStatus = 'Error de conexión';
+                    }
+                },
+                
+                // DTE Methods
+                addDTEItem() {
+                    this.dteForm.detalles.push({
+                        nombre_item: '',
+                        cantidad: 1,
+                        precio_unitario: 0,
+                        unidad_medida: 'UN'
+                    });
+                },
+                
+                removeDTEItem(index) {
+                    this.dteForm.detalles.splice(index, 1);
+                },
+                
+                async generateDTE() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/dte/generar`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.dteForm)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'DTE Generado', 'El documento tributario electrónico ha sido generado exitosamente');
+                            this.stats.totalDTE++;
+                            this.loadData();
+                        } else {
+                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al generar DTE');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al generar DTE');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                resetDTEForm() {
+                    this.dteForm = {
+                        tipo_dte: '',
+                        fecha_emision: new Date().toISOString().split('T')[0],
+                        emisor: {
+                            rut: '',
+                            razon_social: '',
+                            giro: '',
+                            direccion: '',
+                            comuna: '',
+                            ciudad: ''
+                        },
+                        receptor: {
+                            rut: '',
+                            razon_social: '',
+                            giro: '',
+                            direccion: '',
+                            comuna: '',
+                            ciudad: ''
+                        },
+                        detalles: [
+                            {
+                                nombre_item: '',
+                                cantidad: 1,
+                                precio_unitario: 0,
+                                unidad_medida: 'UN'
+                            }
+                        ],
+                        observaciones: ''
+                    };
+                },
+                
+                // BHE Methods
+                async generateBHE() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/bhe/generar`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.bheForm)
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'BHE Generada', 'La boleta de honorarios electrónica ha sido generada exitosamente');
+                            this.stats.totalBHE++;
+                            this.loadData();
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al generar BHE');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al generar BHE');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                resetBHEForm() {
+                    this.bheForm = {
+                        profesional: {
+                            rut: '',
+                            observaciones: ''
+                        },
+                        pagador: {
+                            rut: '',
+                            nombre: '',
+                            direccion: '',
+                            comuna: ''
+                        },
+                        servicios: {
+                            descripcion: '',
+                            periodo_desde: '',
+                            periodo_hasta: '',
+                            monto_bruto: 0,
+                            porcentaje_retencion: 10
+                        }
+                    };
+                },
+                
+                // Certificate Methods
+                handleCertificateFile(event) {
+                    this.certificateForm.file = event.target.files[0];
+                },
+                
+                async uploadCertificate() {
+                    if (!this.certificateForm.file) {
+                        this.showNotification('error', 'Error', 'Debe seleccionar un archivo');
+                        return;
+                    }
+                    
+                    this.loading = true;
+                    try {
+                        const formData = new FormData();
+                        formData.append('certificado', this.certificateForm.file);
+                        formData.append('password', this.certificateForm.password);
+                        formData.append('nombre', this.certificateForm.nombre);
+                        formData.append('rut_empresa', this.certificateForm.rut_empresa);
+                        
+                        const response = await fetch(`${API_BASE_URL}/certificados/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'Certificado Subido', 'El certificado digital ha sido subido exitosamente');
+                            this.certificateForm = {
+                                file: null,
+                                password: '',
+                                nombre: '',
+                                rut_empresa: ''
+                            };
+                            document.getElementById('certificateFile').value = '';
+                            this.loadData();
+                        } else {
+                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al subir certificado');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al subir certificado');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                // PDF Methods
+                async generatePDF() {
+                    if (!this.pdfForm.documentId) {
+                        this.showNotification('error', 'Error', 'Debe especificar el ID del documento');
+                        return;
+                    }
+                    
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/dte/${this.pdfForm.documentId}/pdf?formato=${this.pdfForm.formato}`, {
+                            method: 'POST'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'PDF Generado', 'El PDF con código QR ha sido generado exitosamente');
+                            this.stats.totalPDF++;
+                            this.loadGeneratedPDFs();
+                        } else {
+                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al generar PDF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al generar PDF');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async loadGeneratedPDFs() {
+                    // Mock data for now
+                    this.generatedPDFs = [
+                        {
+                            id: 1,
+                            nombre_archivo: 'factura_33_1001.pdf',
+                            formato: 'carta',
+                            fecha_generacion: '2024-12-20 10:30:00'
+                        }
+                    ];
+                },
+                
+                async downloadPDF(pdfId) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/pdf/${pdfId}/download`);
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `documento_${pdfId}.pdf`;
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        } else {
+                            this.showNotification('error', 'Error', 'Error al descargar PDF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al descargar PDF');
+                    }
+                },
+                
+                // Utility Methods
+                formatCurrency(amount) {
+                    return UTILS.formatCurrency(amount);
+                },
+                
+                validateRUT(rut) {
+                    return UTILS.validateRUT(rut);
+                },
+                
+                formatRUT(rut) {
+                    return UTILS.formatRUT(rut);
+                },
+                
+                validateEmail(email) {
+                    return UTILS.validateEmail(email);
+                },
+                
+                getDocumentTypeColor(type) {
+                    const colors = {
+                        'Factura 33': 'bg-blue-100 text-blue-800',
+                        'BHE 41': 'bg-green-100 text-green-800',
+                        'Boleta 39': 'bg-purple-100 text-purple-800'
+                    };
+                    return colors[type] || 'bg-gray-100 text-gray-800';
+                },
+                
+                showNotification(type, title, message) {
+                    this.notification = {
+                        show: true,
+                        type,
+                        title,
+                        message
+                    };
+                    
+                    setTimeout(() => {
+                        this.hideNotification();
+                    }, 5000);
+                },
+                
+                hideNotification() {
+                    this.notification.show = false;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

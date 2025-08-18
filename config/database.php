@@ -37,6 +37,9 @@ return [
         'xml_temp' => __DIR__ . '/../storage/temp/',
         'xml_generated' => __DIR__ . '/../storage/generated/',
         'logs' => __DIR__ . '/../storage/logs/',
+        'pdfs' => __DIR__ . '/../storage/pdfs/',
+        'uploads' => __DIR__ . '/../storage/uploads/',
+        'xml' => __DIR__ . '/../storage/xml/',
     ],
     
     'dte_types' => [
