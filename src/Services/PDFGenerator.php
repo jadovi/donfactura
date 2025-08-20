@@ -610,14 +610,87 @@ class PDFGenerator
 
     private function convertirHTMLaPDF(string $html, string $formato, ?array $empresaConfig): string
     {
-        // Por ahora simular PDF - implementar con mPDF cuando esté disponible
-        return "PDF_CONTENT_PLACEHOLDER_FOR_{$formato}_" . date('YmdHis');
+        // Por ahora generar un PDF simple con contenido HTML
+        // En implementación real usar mPDF o Dompdf
+        
+        // Crear un PDF básico con el HTML como contenido
+        $pdfContent = "%PDF-1.4\n";
+        $pdfContent .= "1 0 obj\n";
+        $pdfContent .= "<<\n";
+        $pdfContent .= "/Type /Catalog\n";
+        $pdfContent .= "/Pages 2 0 R\n";
+        $pdfContent .= ">>\n";
+        $pdfContent .= "endobj\n";
+        
+        $pdfContent .= "2 0 obj\n";
+        $pdfContent .= "<<\n";
+        $pdfContent .= "/Type /Pages\n";
+        $pdfContent .= "/Kids [3 0 R]\n";
+        $pdfContent .= "/Count 1\n";
+        $pdfContent .= ">>\n";
+        $pdfContent .= "endobj\n";
+        
+        // Convertir HTML a texto simple para el PDF
+        $textoSimple = strip_tags($html);
+        $textoSimple = str_replace(['&nbsp;', '&amp;', '&lt;', '&gt;'], [' ', '&', '<', '>'], $textoSimple);
+        
+        $pdfContent .= "3 0 obj\n";
+        $pdfContent .= "<<\n";
+        $pdfContent .= "/Type /Page\n";
+        $pdfContent .= "/Parent 2 0 R\n";
+        $pdfContent .= "/MediaBox [0 0 612 792]\n";
+        $pdfContent .= "/Contents 4 0 R\n";
+        $pdfContent .= ">>\n";
+        $pdfContent .= "endobj\n";
+        
+        $pdfContent .= "4 0 obj\n";
+        $pdfContent .= "<<\n";
+        $pdfContent .= "/Length " . (strlen($textoSimple) + 50) . "\n";
+        $pdfContent .= ">>\n";
+        $pdfContent .= "stream\n";
+        $pdfContent .= "BT\n";
+        $pdfContent .= "/F1 12 Tf\n";
+        $pdfContent .= "72 720 Td\n";
+        $pdfContent .= "(" . addslashes($textoSimple) . ") Tj\n";
+        $pdfContent .= "ET\n";
+        $pdfContent .= "endstream\n";
+        $pdfContent .= "endobj\n";
+        
+        $pdfContent .= "xref\n";
+        $pdfContent .= "0 5\n";
+        $pdfContent .= "0000000000 65535 f \n";
+        $pdfContent .= "0000000009 00000 n \n";
+        $pdfContent .= "0000000058 00000 n \n";
+        $pdfContent .= "0000000115 00000 n \n";
+        $pdfContent .= "0000000204 00000 n \n";
+        $pdfContent .= "trailer\n";
+        $pdfContent .= "<<\n";
+        $pdfContent .= "/Size 5\n";
+        $pdfContent .= "/Root 1 0 R\n";
+        $pdfContent .= ">>\n";
+        $pdfContent .= "startxref\n";
+        $pdfContent .= "0000000000\n";
+        $pdfContent .= "%%EOF\n";
+        
+        return $pdfContent;
     }
 
     private function guardarPDF(int $dteId, string $formato, string $contenido, string $codigoQR): int
     {
         $nombreArchivo = "dte_{$dteId}_{$formato}_" . date('YmdHis') . ".pdf";
-        $rutaArchivo = $this->config['paths']['generated'] . $nombreArchivo;
+        $rutaArchivo = $this->config['paths']['pdfs'] . $nombreArchivo;
+
+        // Asegurar que el directorio existe
+        if (!is_dir($this->config['paths']['pdfs'])) {
+            mkdir($this->config['paths']['pdfs'], 0755, true);
+        }
+
+        // Guardar archivo físico
+        $archivoGuardado = file_put_contents($rutaArchivo, $contenido);
+        
+        if ($archivoGuardado === false) {
+            throw new \Exception("No se pudo guardar archivo PDF en: {$rutaArchivo}");
+        }
 
         $sql = "INSERT INTO documentos_pdf (dte_id, tipo_formato, nombre_archivo, ruta_archivo, contenido_pdf, codigo_barras_2d) 
                 VALUES (:dte_id, :tipo_formato, :nombre_archivo, :ruta_archivo, :contenido_pdf, :codigo_qr)";

@@ -1,7 +1,7 @@
 // Configuración del Frontend DonFactura
 const CONFIG = {
     // URL base de la API
-    API_BASE_URL: 'http://localhost:8000',
+    API_BASE_URL: 'http://localhost:8000/api.php',
     
     // Rutas de archivos (deben coincidir con la API)
     STORAGE_PATHS: {

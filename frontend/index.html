@@ -64,6 +64,16 @@
                                     class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 <i class="fas fa-file-pdf mr-2"></i>PDF & QR
                             </button>
+                            <button @click="currentView = 'dte-management'" 
+                                    :class="currentView === 'dte-management' ? 'bg-chile-red' : 'hover:bg-blue-700'" 
+                                    class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-cogs mr-2"></i>Gestión DTE
+                            </button>
+                            <button @click="currentView = 'caf-management'" 
+                                    :class="currentView === 'caf-management' ? 'bg-chile-red' : 'hover:bg-blue-700'" 
+                                    class="px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                <i class="fas fa-list-ol mr-2"></i>Gestión CAF
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -531,9 +541,20 @@
                                            class="w-full max-w-md mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">RUT Empresa</label>
+                                    <label class="block text-sm font-medium text-gray-700">RUT Empresa *</label>
                                     <input type="text" x-model="certificateForm.rut_empresa" placeholder="76543210-9"
                                            class="w-full max-w-md mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Razón Social *</label>
+                                    <input type="text" x-model="certificateForm.razon_social" placeholder="Empresa Ejemplo SPA"
+                                           class="w-full max-w-md mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Fecha de Vencimiento</label>
+                                    <input type="date" x-model="certificateForm.fecha_vencimiento"
+                                           class="w-full max-w-md mx-auto px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-chile-blue">
+                                    <p class="text-xs text-gray-500 mt-1">Si no especifica, se usará una fecha por defecto (2 años desde hoy)</p>
                                 </div>
                                 <button @click="uploadCertificate()" 
                                         :disabled="loading"
@@ -563,7 +584,9 @@
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900" x-text="cert.nombre"></div>
                                         <div class="text-sm text-gray-500">RUT: <span x-text="cert.rut_empresa"></span></div>
-                                        <div class="text-sm text-gray-500">Subido: <span x-text="cert.fecha_subida"></span></div>
+                                        <div class="text-sm text-gray-500">Razón Social: <span x-text="cert.razon_social"></span></div>
+                                        <div class="text-sm text-gray-500">Vencimiento: <span x-text="cert.fecha_vencimiento"></span></div>
+                                        <div class="text-sm text-gray-500">Subido: <span x-text="cert.created_at"></span></div>
                                     </div>
                                 </div>
                                 <div class="flex space-x-2">
@@ -584,6 +607,219 @@
                             <i class="fas fa-certificate text-4xl mb-4"></i>
                             <p>No hay certificados cargados</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DTE Management View -->
+        <div x-show="currentView === 'dte-management'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-6">
+                    <i class="fas fa-file-invoice mr-2 text-chile-blue"></i>Gestión de DTEs - Firma Digital y SII
+                </h3>
+                
+                <!-- DTE List -->
+                <div class="mb-6">
+                    <h4 class="text-md font-semibold text-gray-900 mb-4">Documentos Tributarios Electrónicos</h4>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <template x-for="dte in dteList">
+                            <div class="flex items-center justify-between p-4 bg-white rounded border mb-3">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <i class="fas fa-file-invoice text-2xl text-chile-blue"></i>
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">
+                                            DTE #<span x-text="dte.id"></span> - Tipo <span x-text="dte.tipo_dte"></span>
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            Folio: <span x-text="dte.folio"></span> | 
+                                            Emisor: <span x-text="dte.rut_emisor"></span> | 
+                                            Monto: $<span x-text="dte.monto_total?.toLocaleString()"></span>
+                                        </div>
+                                        <div class="text-xs text-gray-400 mt-1">
+                                            Estado: <span :class="getEstadoClass(dte.estado)" x-text="dte.estado"></span> | 
+                                            Fecha: <span x-text="dte.fecha_emision"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <!-- Botón Firmar -->
+                                    <button @click="firmarDTE(dte.id)" 
+                                            :disabled="dte.estado !== 'generado' || loading"
+                                            :class="dte.estado === 'generado' ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 cursor-not-allowed'"
+                                            class="text-white px-3 py-1 rounded text-sm transition-colors">
+                                        <i class="fas fa-signature mr-1"></i>Firmar
+                                    </button>
+                                    
+                                    <!-- Botón Enviar SII -->
+                                    <button @click="enviarSII(dte.id)" 
+                                            :disabled="dte.estado !== 'firmado' || loading"
+                                            :class="dte.estado === 'firmado' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'"
+                                            class="text-white px-3 py-1 rounded text-sm transition-colors">
+                                        <i class="fas fa-paper-plane mr-1"></i>Enviar SII
+                                    </button>
+                                    
+                                    <!-- Botón Consultar Estado -->
+                                    <button @click="consultarEstadoSII(dte.id)" 
+                                            :disabled="loading"
+                                            class="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition-colors">
+                                        <i class="fas fa-search mr-1"></i>Estado
+                                    </button>
+                                    
+                                    <!-- Botón Ver XML -->
+                                    <button @click="verXML(dte.id)" 
+                                            class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700 transition-colors">
+                                        <i class="fas fa-code mr-1"></i>XML
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <div x-show="dteList.length === 0" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-file-invoice text-4xl mb-4"></i>
+                            <p>No hay DTEs disponibles</p>
+                            <p class="text-sm mt-2">Genera un DTE primero para verlo aquí</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workflow Information -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-blue-900 mb-2">
+                            <i class="fas fa-1-circle mr-2"></i>1. Generar DTE
+                        </h5>
+                        <p class="text-sm text-blue-700">
+                            El DTE se genera con XML según especificaciones SII y se guarda en estado "generado".
+                        </p>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-green-900 mb-2">
+                            <i class="fas fa-2-circle mr-2"></i>2. Firmar Digitalmente
+                        </h5>
+                        <p class="text-sm text-green-700">
+                            Se firma el XML con el certificado PFX subido, completando el TED (Timbre Electrónico).
+                        </p>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-purple-900 mb-2">
+                            <i class="fas fa-3-circle mr-2"></i>3. Enviar al SII
+                        </h5>
+                        <p class="text-sm text-purple-700">
+                            El XML firmado se envía a la plataforma de certificación del SII para validación.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CAF Management View -->
+        <div x-show="currentView === 'caf-management'" class="space-y-6">
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        <i class="fas fa-list-ol mr-2 text-chile-blue"></i>Gestión de CAF (Correlativo de Autorización de Folios)
+                    </h3>
+                    <button @click="solicitarCAF()" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Solicitar Nuevo CAF
+                    </button>
+                </div>
+                
+                <!-- Filtros -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo DTE</label>
+                        <select x-model="cafFilters.tipoDte" @change="cargarCAF()" 
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="">Todos los tipos</option>
+                            <option value="33">33 - Factura Electrónica</option>
+                            <option value="34">34 - Factura Exenta</option>
+                            <option value="39">39 - Boleta Electrónica</option>
+                            <option value="41">41 - BHE</option>
+                            <option value="45">45 - Factura Compra</option>
+                            <option value="56">56 - Nota Débito</option>
+                            <option value="61">61 - Nota Crédito</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">RUT Emisor</label>
+                        <input type="text" x-model="cafFilters.rutEmisor" @input="cargarCAF()" 
+                               placeholder="Ej: 76543210-9"
+                               class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    </div>
+                    <div class="flex items-end">
+                        <button @click="verificarEstadoCAF()" 
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-check mr-2"></i>Verificar Estado
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla CAF -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo DTE</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">RUT Emisor</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rango Folios</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disponibles</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vencimiento</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-for="caf in cafList" :key="caf.id">
+                                <tr>
+                                    <td class="px-4 py-2 text-sm text-gray-900" x-text="caf.id"></td>
+                                    <td class="px-4 py-2 text-sm text-gray-900" x-text="caf.tipo_dte"></td>
+                                    <td class="px-4 py-2 text-sm text-gray-900" x-text="caf.rut_emisor"></td>
+                                    <td class="px-4 py-2 text-sm text-gray-900" x-text="`${caf.folio_desde} - ${caf.folio_hasta}`"></td>
+                                    <td class="px-4 py-2 text-sm text-gray-900" x-text="caf.folios_disponibles"></td>
+                                    <td class="px-4 py-2">
+                                        <span class="px-2 py-1 text-xs font-medium rounded-full" 
+                                              :class="getCAFEstadoClass(caf.estado)" 
+                                              x-text="caf.estado"></span>
+                                    </td>
+                                    <td class="px-4 py-2 text-sm text-gray-900" x-text="caf.fecha_vencimiento"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div x-show="cafList.length === 0" class="text-center py-8 text-gray-500">
+                    <i class="fas fa-list-ol text-4xl mb-4"></i>
+                    <p>No hay CAF disponibles</p>
+                    <p class="text-sm mt-2">Solicita un CAF para comenzar</p>
+                </div>
+
+                <!-- Información CAF -->
+                <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-blue-900 mb-2">
+                            <i class="fas fa-info-circle mr-2"></i>¿Qué es el CAF?
+                        </h5>
+                        <p class="text-sm text-blue-700">
+                            El CAF (Correlativo de Autorización de Folios) es un documento electrónico que el SII entrega 
+                            para autorizar la emisión de documentos tributarios. Es el equivalente moderno del antiguo "timbraje".
+                        </p>
+                    </div>
+                    
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h5 class="font-semibold text-green-900 mb-2">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Importante
+                        </h5>
+                        <p class="text-sm text-green-700">
+                            Sin CAF activo no se pueden generar DTEs. El sistema automáticamente asigna folios del CAF 
+                            disponible al generar documentos.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -616,9 +852,20 @@
                             </div>
                             <button @click="generatePDF()" 
                                     :disabled="loading"
-                                    class="w-full bg-chile-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                                    class="w-full bg-chile-blue text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors mb-3">
                                 <span x-show="!loading">
                                     <i class="fas fa-file-pdf mr-2"></i>Generar PDF
+                                </span>
+                                <span x-show="loading">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
+                                </span>
+                            </button>
+                            
+                            <button @click="generateQR(pdfForm.documentId)" 
+                                    :disabled="loading || !pdfForm.documentId"
+                                    class="w-full bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors">
+                                <span x-show="!loading">
+                                    <i class="fas fa-qrcode mr-2"></i>Generar QR
                                 </span>
                                 <span x-show="loading">
                                     <i class="fas fa-spinner fa-spin mr-2"></i>Generando...
@@ -734,7 +981,7 @@
 
     <!-- Scripts -->
     <script>
-        const API_BASE_URL = CONFIG.API_BASE_URL + '/api';
+        const API_BASE_URL = CONFIG.API_BASE_URL;
         
         function appData() {
             return {
@@ -810,7 +1057,9 @@
                     file: null,
                     password: '',
                     nombre: '',
-                    rut_empresa: ''
+                    rut_empresa: '',
+                    razon_social: '',
+                    fecha_vencimiento: ''
                 },
                 
                 // PDF Form
@@ -818,6 +1067,22 @@
                     documentId: '',
                     formato: 'carta'
                 },
+                
+                // DTE Management
+                dteList: [],
+                
+                // CAF Management
+                cafList: [],
+                cafFilters: {
+                    tipoDte: '',
+                    rutEmisor: ''
+                },
+                cafForm: {
+                    tipoDte: '',
+                    rutEmisor: '',
+                    cantidadFolios: 1000
+                },
+                showCAFModal: false,
                 
                 // Data arrays
                 certificates: [],
@@ -834,16 +1099,18 @@
                 // Methods
                 init() {
                     this.loadData();
+                    this.loadDTEList();
+                    this.cargarCAF();
                     this.checkConnection();
                 },
                 
                 async loadData() {
                     try {
                         // Load certificates
-                        const certsResponse = await fetch(`${API_BASE_URL}/certificados`);
+                        const certsResponse = await fetch(`${CONFIG.API_BASE_URL}/certificados`);
                         if (certsResponse.ok) {
                             const certsData = await certsResponse.json();
-                            this.certificates = certsData.data || [];
+                            this.certificates = certsData.data?.certificados || [];
                             this.stats.totalCertificates = this.certificates.length;
                         }
                         
@@ -870,7 +1137,7 @@
                 
                 async checkConnection() {
                     try {
-                        const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`);
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/health`);
                         if (response.ok) {
                             this.connectionStatus = 'Conectado';
                         } else {
@@ -898,7 +1165,7 @@
                 async generateDTE() {
                     this.loading = true;
                     try {
-                        const response = await fetch(`${API_BASE_URL}/dte/generar`, {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/dte/generar`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -913,7 +1180,7 @@
                             this.stats.totalDTE++;
                             this.loadData();
                         } else {
-                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al generar DTE');
+                            this.showNotification('error', 'Error', data.error || 'Error al generar DTE');
                         }
                     } catch (error) {
                         this.showNotification('error', 'Error', 'Error de conexión al generar DTE');
@@ -958,12 +1225,33 @@
                 async generateBHE() {
                     this.loading = true;
                     try {
-                        const response = await fetch(`${API_BASE_URL}/bhe/generar`, {
+                        // Por ahora, usar el endpoint de DTE con tipo 41 (BHE)
+                        const bheData = {
+                            tipo_dte: 41,
+                            fecha_emision: this.bheForm.servicios.periodo_hasta || new Date().toISOString().split('T')[0],
+                            emisor: {
+                                rut: this.bheForm.profesional.rut,
+                                razon_social: this.bheForm.profesional.observaciones || 'Profesional'
+                            },
+                            receptor: {
+                                rut: this.bheForm.pagador.rut,
+                                razon_social: this.bheForm.pagador.nombre
+                            },
+                            detalles: [{
+                                nombre_item: this.bheForm.servicios.descripcion,
+                                cantidad: 1,
+                                precio_unitario: this.bheForm.servicios.monto_bruto,
+                                unidad_medida: 'UN'
+                            }],
+                            observaciones: `BHE - Retención ${this.bheForm.servicios.porcentaje_retencion}%`
+                        };
+                        
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/dte/generar`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
-                            body: JSON.stringify(this.bheForm)
+                            body: JSON.stringify(bheData)
                         });
                         
                         const data = await response.json();
@@ -1015,6 +1303,21 @@
                         return;
                     }
                     
+                    if (!this.certificateForm.password) {
+                        this.showNotification('error', 'Error', 'Debe proporcionar la contraseña del certificado');
+                        return;
+                    }
+                    
+                    if (!this.certificateForm.rut_empresa) {
+                        this.showNotification('error', 'Error', 'Debe proporcionar el RUT de la empresa');
+                        return;
+                    }
+                    
+                    if (!this.certificateForm.razon_social) {
+                        this.showNotification('error', 'Error', 'Debe proporcionar la razón social');
+                        return;
+                    }
+                    
                     this.loading = true;
                     try {
                         const formData = new FormData();
@@ -1022,8 +1325,12 @@
                         formData.append('password', this.certificateForm.password);
                         formData.append('nombre', this.certificateForm.nombre);
                         formData.append('rut_empresa', this.certificateForm.rut_empresa);
+                        formData.append('razon_social', this.certificateForm.razon_social);
+                        if (this.certificateForm.fecha_vencimiento) {
+                            formData.append('fecha_vencimiento', this.certificateForm.fecha_vencimiento);
+                        }
                         
-                        const response = await fetch(`${API_BASE_URL}/certificados/upload`, {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/certificados/upload`, {
                             method: 'POST',
                             body: formData
                         });
@@ -1036,12 +1343,15 @@
                                 file: null,
                                 password: '',
                                 nombre: '',
-                                rut_empresa: ''
+                                rut_empresa: '',
+                                razon_social: '',
+                                fecha_vencimiento: ''
                             };
                             document.getElementById('certificateFile').value = '';
                             this.loadData();
                         } else {
-                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al subir certificado');
+                            this.showNotification('error', 'Error', data.error || 'Error al subir certificado');
+                            console.log('error al subir el certificado ' +  data.error );
                         }
                     } catch (error) {
                         this.showNotification('error', 'Error', 'Error de conexión al subir certificado');
@@ -1059,18 +1369,22 @@
                     
                     this.loading = true;
                     try {
-                        const response = await fetch(`${API_BASE_URL}/dte/${this.pdfForm.documentId}/pdf?formato=${this.pdfForm.formato}`, {
-                            method: 'POST'
-                        });
-                        
+                        const url = `${CONFIG.API_BASE_URL}/dte/${this.pdfForm.documentId}/pdf?formato=${this.pdfForm.formato}`;
+                        const response = await fetch(url, { method: 'POST' });
                         const data = await response.json();
                         
                         if (data.success) {
-                            this.showNotification('success', 'PDF Generado', 'El PDF con código QR ha sido generado exitosamente');
+                            this.showNotification('success', 'PDF Generado', 'PDF con código QR generado exitosamente');
+                            this.generatedPDFs.unshift({
+                                id: data.data.pdf_id,
+                                nombre_archivo: data.data.nombre_archivo,
+                                formato: this.pdfForm.formato,
+                                fecha_generacion: new Date().toLocaleString(),
+                                url_descarga: data.data.url_descarga
+                            });
                             this.stats.totalPDF++;
-                            this.loadGeneratedPDFs();
                         } else {
-                            this.showNotification('error', 'Error', data.errors?.join(', ') || 'Error al generar PDF');
+                            this.showNotification('error', 'Error', data.error || 'Error al generar PDF');
                         }
                     } catch (error) {
                         this.showNotification('error', 'Error', 'Error de conexión al generar PDF');
@@ -1093,21 +1407,158 @@
                 
                 async downloadPDF(pdfId) {
                     try {
-                        const response = await fetch(`${API_BASE_URL}/pdf/${pdfId}/download`);
-                        if (response.ok) {
-                            const blob = await response.blob();
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = `documento_${pdfId}.pdf`;
-                            a.click();
-                            window.URL.revokeObjectURL(url);
+                        const pdf = this.generatedPDFs.find(p => p.id === pdfId);
+                        if (!pdf || !pdf.url_descarga) {
+                            this.showNotification('error', 'Error', 'URL de descarga no disponible');
+                            return;
+                        }
+                        
+                        const url = `${CONFIG.API_BASE_URL}${pdf.url_descarga}`;
+                        window.open(url, '_blank');
+                        this.showNotification('success', 'Descarga Iniciada', 'El PDF se está descargando');
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error al descargar PDF');
+                    }
+                },
+                
+                async generateQR(dteId) {
+                    if (!dteId) {
+                        this.showNotification('error', 'Error', 'Debe especificar el ID del DTE');
+                        return;
+                    }
+                    
+                    this.loading = true;
+                    try {
+                        const url = `${CONFIG.API_BASE_URL}/dte/${dteId}/qr`;
+                        const response = await fetch(url, { method: 'GET' });
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'QR Generado', 'Código QR generado según especificaciones SII');
+                            // Mostrar el QR en una ventana modal o nueva pestaña
+                            const qrWindow = window.open('', '_blank');
+                            qrWindow.document.write(`
+                                <html>
+                                <head><title>Código QR DTE ${dteId}</title></head>
+                                <body style="text-align: center; font-family: Arial, sans-serif;">
+                                    <h2>Código QR - DTE ${dteId}</h2>
+                                    <img src="${data.data.qr_image}" alt="Código QR" style="max-width: 300px;">
+                                    <p><strong>Datos QR:</strong> ${data.data.qr_data}</p>
+                                    <p><em>Formato SII: ${data.data.formato_sii ? 'Válido' : 'Inválido'}</em></p>
+                                </body>
+                                </html>
+                            `);
                         } else {
-                            this.showNotification('error', 'Error', 'Error al descargar PDF');
+                            this.showNotification('error', 'Error', data.error || 'Error al generar QR');
                         }
                     } catch (error) {
-                        this.showNotification('error', 'Error', 'Error de conexión al descargar PDF');
+                        this.showNotification('error', 'Error', 'Error de conexión al generar QR');
+                    } finally {
+                        this.loading = false;
                     }
+                },
+                
+                // CAF Management Methods
+                async cargarCAF() {
+                    try {
+                        const params = new URLSearchParams();
+                        if (this.cafFilters.tipoDte) {
+                            params.append('tipo_dte', this.cafFilters.tipoDte);
+                        }
+                        if (this.cafFilters.rutEmisor) {
+                            params.append('rut_emisor', this.cafFilters.rutEmisor);
+                        }
+                        
+                        const url = `${CONFIG.API_BASE_URL}/caf/disponibles?${params.toString()}`;
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.cafList = data.data.cafs;
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al cargar CAF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al cargar CAF');
+                    }
+                },
+                
+                async solicitarCAF() {
+                    // Mostrar modal para solicitar CAF
+                    this.cafForm = {
+                        tipoDte: '',
+                        rutEmisor: '',
+                        cantidadFolios: 1000
+                    };
+                    this.showCAFModal = true;
+                },
+                
+                async enviarSolicitudCAF() {
+                    if (!this.cafForm.tipoDte || !this.cafForm.rutEmisor || !this.cafForm.cantidadFolios) {
+                        this.showNotification('error', 'Error', 'Todos los campos son requeridos');
+                        return;
+                    }
+                    
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/caf/solicitar`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                tipo_dte: parseInt(this.cafForm.tipoDte),
+                                rut_emisor: this.cafForm.rutEmisor,
+                                cantidad_folios: parseInt(this.cafForm.cantidadFolios)
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'CAF Solicitado', 'Solicitud de CAF enviada exitosamente');
+                            this.showCAFModal = false;
+                            this.cargarCAF();
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al solicitar CAF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al solicitar CAF');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async verificarEstadoCAF() {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/caf/verificar-estado`, {
+                            method: 'POST'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'Estado Verificado', data.data.mensaje);
+                            this.cargarCAF();
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al verificar estado CAF');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al verificar estado CAF');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                getCAFEstadoClass(estado) {
+                    const classes = {
+                        'activo': 'bg-green-100 text-green-800',
+                        'agotado': 'bg-red-100 text-red-800',
+                        'vencido': 'bg-yellow-100 text-yellow-800',
+                        'cancelado': 'bg-gray-100 text-gray-800'
+                    };
+                    return classes[estado] || 'bg-gray-100 text-gray-800';
                 },
                 
                 // Utility Methods
@@ -1151,9 +1602,216 @@
                 
                 hideNotification() {
                     this.notification.show = false;
+                },
+                
+                // DTE Management Methods
+                async loadDTEList() {
+                    try {
+                        // Por ahora cargamos datos mock, pero aquí iría la llamada real a la API
+                        this.dteList = [
+                            {
+                                id: 1,
+                                tipo_dte: 33,
+                                folio: 1001,
+                                rut_emisor: '76543210-9',
+                                monto_total: 119000,
+                                estado: 'generado',
+                                fecha_emision: '2024-12-20'
+                            },
+                            {
+                                id: 2,
+                                tipo_dte: 41,
+                                folio: 501,
+                                rut_emisor: '12345678-9',
+                                monto_total: 50000,
+                                estado: 'firmado',
+                                fecha_emision: '2024-12-19'
+                            }
+                        ];
+                    } catch (error) {
+                        console.error('Error loading DTE list:', error);
+                    }
+                },
+                
+                async firmarDTE(dteId) {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/dte/${dteId}/firmar`, {
+                            method: 'POST'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'DTE Firmado', 'Documento firmado digitalmente exitosamente');
+                            // Actualizar el estado en la lista local
+                            const dte = this.dteList.find(d => d.id === dteId);
+                            if (dte) {
+                                dte.estado = 'firmado';
+                            }
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al firmar DTE');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al firmar DTE');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async enviarSII(dteId) {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/dte/${dteId}/enviar-sii`, {
+                            method: 'POST'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'Enviado al SII', 'DTE enviado a la plataforma de certificación del SII');
+                            // Actualizar el estado en la lista local
+                            const dte = this.dteList.find(d => d.id === dteId);
+                            if (dte) {
+                                dte.estado = 'enviado_sii';
+                            }
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al enviar al SII');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al enviar al SII');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async consultarEstadoSII(dteId) {
+                    this.loading = true;
+                    try {
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/dte/${dteId}/estado-sii`, {
+                            method: 'GET'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.showNotification('success', 'Estado Consultado', 
+                                `Estado SII: ${data.data.estado_sii.estado_sii}`);
+                            // Actualizar el estado en la lista local si cambió
+                            const dte = this.dteList.find(d => d.id === dteId);
+                            if (dte && data.data.estado_sii.estado_sii !== dte.estado) {
+                                dte.estado = data.data.estado_sii.estado_sii;
+                            }
+                        } else {
+                            this.showNotification('error', 'Error', data.error || 'Error al consultar estado');
+                        }
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error de conexión al consultar estado');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async verXML(dteId) {
+                    try {
+                        // Por ahora mostramos un mensaje, pero aquí se podría implementar
+                        // la visualización del XML en una ventana modal
+                        this.showNotification('info', 'Ver XML', 'Funcionalidad de visualización XML en desarrollo');
+                    } catch (error) {
+                        this.showNotification('error', 'Error', 'Error al mostrar XML');
+                    }
+                },
+                
+                getEstadoClass(estado) {
+                    const classes = {
+                        'generado': 'text-blue-600 font-semibold',
+                        'firmado': 'text-green-600 font-semibold',
+                        'enviado_sii': 'text-purple-600 font-semibold',
+                        'aceptado': 'text-green-800 font-bold',
+                        'rechazado': 'text-red-600 font-bold'
+                    };
+                    return classes[estado] || 'text-gray-600';
                 }
             };
         }
     </script>
+
+    <!-- CAF Modal -->
+    <div x-show="showCAFModal" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         style="display: none;">
+        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+            
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-list-ol text-blue-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                Solicitar Nuevo CAF
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de DTE</label>
+                                    <select x-model="cafForm.tipoDte" 
+                                            class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                        <option value="">Seleccionar tipo</option>
+                                        <option value="33">33 - Factura Electrónica</option>
+                                        <option value="34">34 - Factura Exenta</option>
+                                        <option value="39">39 - Boleta Electrónica</option>
+                                        <option value="41">41 - BHE</option>
+                                        <option value="45">45 - Factura Compra</option>
+                                        <option value="56">56 - Nota Débito</option>
+                                        <option value="61">61 - Nota Crédito</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">RUT Emisor</label>
+                                    <input type="text" x-model="cafForm.rutEmisor" 
+                                           placeholder="Ej: 76543210-9"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Cantidad de Folios</label>
+                                    <input type="number" x-model="cafForm.cantidadFolios" 
+                                           min="1" max="10000"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button @click="enviarSolicitudCAF()" 
+                            :disabled="loading"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                        <span x-show="!loading">
+                            <i class="fas fa-paper-plane mr-2"></i>Solicitar CAF
+                        </span>
+                        <span x-show="loading">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Solicitando...
+                        </span>
+                    </button>
+                    <button @click="showCAFModal = false" 
+                            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

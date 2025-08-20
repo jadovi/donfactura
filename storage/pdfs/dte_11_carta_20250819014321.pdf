@@ -1,0 +1,240 @@
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 6191
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(
+        
+        
+        
+            
+            FACTURA ELECTRÓNICA N° 9599
+            
+                
+                @page {
+                    size: letter;
+                    margin: 20mm;
+                }
+                body {
+                    font-family: Arial, sans-serif;
+                    font-size: 12px;
+                    line-height: 1.4;
+                    color: #000;
+                    margin: 0;
+                    padding: 0;
+                }
+                .documento {
+                    width: 100%;
+                    max-width: 21cm;
+                    margin: 0 auto;
+                }
+                .encabezado {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 20px;
+                    border-bottom: 2px solid #000000;
+                    padding-bottom: 15px;
+                }
+                .logo-section {
+                    flex: 1;
+                }
+                .logo {
+                    max-width: 120px;
+                    max-height: 80px;
+                }
+                .empresa-info {
+                    flex: 2;
+                    text-align: center;
+                }
+                .empresa-info h1 {
+                    color: #000000;
+                    font-size: 18px;
+                    margin: 0 0 5px 0;
+                }
+                .empresa-info h2 {
+                    color: #666666;
+                    font-size: 14px;
+                    margin: 0 0 10px 0;
+                }
+                .documento-info {
+                    flex: 1;
+                    text-align: center;
+                }
+                .tipo-documento {
+                    border: 2px solid #000000;
+                    padding: 10px;
+                    margin-bottom: 10px;
+                }
+                .tipo-documento h2 {
+                    color: #000000;
+                    margin: 0;
+                    font-size: 16px;
+                }
+                .numero {
+                    font-size: 14px;
+                    font-weight: bold;
+                    margin: 5px 0 0 0;
+                }
+                .qr-code {
+                    width: 80px;
+                    height: 80px;
+                }
+                .receptor-section {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 20px 0;
+                    padding: 15px;
+                    background-color: #f9f9f9;
+                    border: 1px solid #ddd;
+                }
+                .detalle-tabla {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 20px 0;
+                }
+                .detalle-tabla th {
+                    background-color: #000000;
+                    color: white;
+                    padding: 10px;
+                    text-align: left;
+                    font-weight: bold;
+                }
+                .detalle-tabla td {
+                    padding: 8px;
+                    border-bottom: 1px solid #ddd;
+                }
+                .centrado { text-align: center; }
+                .derecha { text-align: right; }
+                .totales-section {
+                    float: right;
+                    width: 300px;
+                    margin: 20px 0;
+                }
+                .totales-tabla {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                .totales-tabla td {
+                    padding: 8px;
+                    border-bottom: 1px solid #ddd;
+                    text-align: right;
+                }
+                .total-final {
+                    background-color: #000000;
+                    color: white;
+                    font-size: 14px;
+                }
+                .footer {
+                    clear: both;
+                    text-align: center;
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 1px solid #ddd;
+                    font-size: 10px;
+                    color: #666666;
+                }
+            
+            
+        
+        
+            
+                
+                
+                    
+                        
+                    
+                    
+                        EMPRESA EJEMPLO LIMITADA
+                        Empresa Ejemplo
+                        SERVICIOS DE CONSULTORÍA
+                        
+                            AV. PROVIDENCIA 1234
+                            PROVIDENCIA, SANTIAGO
+                            Tel: +56912345678
+                            Email: contacto@empresaejemplo.cl
+                        
+                    
+                    
+                        
+                            FACTURA ELECTRÓNICA
+                            N° 9599
+                        
+                        
+                            
+                            Código de barras 2D
+                        
+                    
+                
+
+                
+                
+                    Datos del Cliente
+                    
+                        RUT: 12345678-9
+                        Razón Social: Cliente Test LTDA
+                        
+                        
+                    
+                    
+                        Fecha Emisión: 19/08/2025
+                    
+                
+
+                
+                
+                    
+                        
+                            
+                                Item
+                                Descripción
+                                Cant.
+                                P. Unit.
+                                Descto.
+                                Total
+                            
+                        
+                        ) Tj
+ET
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000204 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+0000000000
+%%EOF

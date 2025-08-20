@@ -19,7 +19,7 @@ class DTEXMLGenerator
         $this->config = $config;
     }
 
-    public function generar(int $tipoDte, array $data, int $folio): string
+    public function generar(int $tipoDte, array $data, int $folio, ?int $cafId = null): string
     {
         switch ($tipoDte) {
             case 33:
@@ -243,8 +243,8 @@ class DTEXMLGenerator
 
         // Identificación del documento
         $idDoc = $xml->createElement('IdDoc');
-        $idDoc->appendChild($xml->createElement('TipoDTE', $tipoDte));
-        $idDoc->appendChild($xml->createElement('Folio', $folio));
+        $idDoc->appendChild($xml->createElement('TipoDTE', (string)$tipoDte));
+        $idDoc->appendChild($xml->createElement('Folio', (string)$folio));
         $idDoc->appendChild($xml->createElement('FchEmis', $data['fecha_emision'] ?? date('Y-m-d')));
         if (isset($data['forma_pago'])) {
             $idDoc->appendChild($xml->createElement('FmaPago', $data['forma_pago']));
@@ -275,13 +275,13 @@ class DTEXMLGenerator
 
         // Identificación del documento
         $idDoc = $xml->createElement('IdDoc');
-        $idDoc->appendChild($xml->createElement('TipoDTE', 39));
-        $idDoc->appendChild($xml->createElement('Folio', $folio));
+        $idDoc->appendChild($xml->createElement('TipoDTE', '39'));
+        $idDoc->appendChild($xml->createElement('Folio', (string)$folio));
         $idDoc->appendChild($xml->createElement('FchEmis', $data['fecha_emision'] ?? date('Y-m-d')));
         
         // Para boletas, el indicador de servicio periódico
         if (isset($data['boleta']['servicio_periodico']) && $data['boleta']['servicio_periodico']) {
-            $idDoc->appendChild($xml->createElement('IndServicio', 1));
+            $idDoc->appendChild($xml->createElement('IndServicio', '1'));
             if (isset($data['boleta']['periodo_desde'])) {
                 $idDoc->appendChild($xml->createElement('PeriodoDesde', $data['boleta']['periodo_desde']));
             }
@@ -313,8 +313,8 @@ class DTEXMLGenerator
 
         // Identificación del documento
         $idDoc = $xml->createElement('IdDoc');
-        $idDoc->appendChild($xml->createElement('TipoDTE', 45));
-        $idDoc->appendChild($xml->createElement('Folio', $folio));
+        $idDoc->appendChild($xml->createElement('TipoDTE', '45'));
+        $idDoc->appendChild($xml->createElement('Folio', (string)$folio));
         $idDoc->appendChild($xml->createElement('FchEmis', $data['fecha_emision'] ?? date('Y-m-d')));
         $idDoc->appendChild($xml->createElement('TipoDespacho', $data['tipo_despacho'] ?? 1));
         $idDoc->appendChild($xml->createElement('IndTraslado', $data['ind_traslado'] ?? 1));
@@ -444,7 +444,7 @@ class DTEXMLGenerator
         foreach ($detalles as $index => $detalle) {
             $detalleElement = $xml->createElement('Detalle');
             
-            $detalleElement->appendChild($xml->createElement('NroLinDet', $index + 1));
+            $detalleElement->appendChild($xml->createElement('NroLinDet', (string)($index + 1)));
             
             if (isset($detalle['codigo_item'])) {
                 $detalleElement->appendChild($xml->createElement('CdgItem', $detalle['codigo_item']));
@@ -457,29 +457,29 @@ class DTEXMLGenerator
             }
             
             $cantidad = $detalle['cantidad'] ?? 1;
-            $detalleElement->appendChild($xml->createElement('QtyItem', $cantidad));
+            $detalleElement->appendChild($xml->createElement('QtyItem', (string)$cantidad));
             
             if (isset($detalle['unidad_medida'])) {
                 $detalleElement->appendChild($xml->createElement('UnmdItem', $detalle['unidad_medida']));
             }
             
             $precio = $detalle['precio_unitario'];
-            $detalleElement->appendChild($xml->createElement('PrcItem', number_format($precio, 0, '', '')));
+            $detalleElement->appendChild($xml->createElement('PrcItem', (string)number_format($precio, 0, '', '')));
             
             if (isset($detalle['descuento_porcentaje']) && $detalle['descuento_porcentaje'] > 0) {
-                $detalleElement->appendChild($xml->createElement('DescuentoPct', $detalle['descuento_porcentaje']));
+                $detalleElement->appendChild($xml->createElement('DescuentoPct', (string)$detalle['descuento_porcentaje']));
             }
             
             if (isset($detalle['descuento_monto']) && $detalle['descuento_monto'] > 0) {
-                $detalleElement->appendChild($xml->createElement('DescuentoMonto', number_format($detalle['descuento_monto'], 0, '', '')));
+                $detalleElement->appendChild($xml->createElement('DescuentoMonto', (string)number_format($detalle['descuento_monto'], 0, '', '')));
             }
             
             $montoItem = ($cantidad * $precio) - ($detalle['descuento_monto'] ?? 0);
-            $detalleElement->appendChild($xml->createElement('MontoItem', number_format($montoItem, 0, '', '')));
+            $detalleElement->appendChild($xml->createElement('MontoItem', (string)number_format($montoItem, 0, '', '')));
             
             // Indicador de exento
             if ($exenta || ($detalle['indica_exento'] ?? false)) {
-                $detalleElement->appendChild($xml->createElement('IndExe', 1));
+                $detalleElement->appendChild($xml->createElement('IndExe', '1'));
             }
             
             $elementosDetalle[] = $detalleElement;
@@ -511,7 +511,7 @@ class DTEXMLGenerator
         return $elementosReferencia;
     }
 
-    private function crearTEDPlaceholder(DOMDocument $xml, int $folio, int $tipoDte): \DOMElement
+    private function crearTEDPlaceholder(DOMDocument $xml, int $folio, int $tipoDte, ?int $cafId = null): \DOMElement
     {
         // Placeholder para el TED - se completará después de la firma
         $ted = $xml->createElement('TED');
@@ -519,8 +519,8 @@ class DTEXMLGenerator
         
         $dd = $xml->createElement('DD');
         $dd->appendChild($xml->createElement('RE', 'PLACEHOLDER_RUT_EMISOR'));
-        $dd->appendChild($xml->createElement('TD', $tipoDte));
-        $dd->appendChild($xml->createElement('F', $folio));
+        $dd->appendChild($xml->createElement('TD', (string)$tipoDte));
+        $dd->appendChild($xml->createElement('F', (string)$folio));
         $dd->appendChild($xml->createElement('FE', date('Y-m-d')));
         $dd->appendChild($xml->createElement('RR', 'PLACEHOLDER_RUT_RECEPTOR'));
         $dd->appendChild($xml->createElement('RSR', 'PLACEHOLDER_RAZON_SOCIAL_RECEPTOR'));

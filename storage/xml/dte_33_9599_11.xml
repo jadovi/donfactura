@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<DTE version="1.0">
+  <Documento ID="F9599T33">
+    <Encabezado>
+      <IdDoc>
+        <TipoDTE>33</TipoDTE>
+        <Folio>9599</Folio>
+        <FchEmis>2025-08-19</FchEmis>
+      </IdDoc>
+      <Emisor>
+        <RUTEmisor>76543210-9</RUTEmisor>
+        <RznSoc>Empresa Test SPA</RznSoc>
+        <GiroEmis>Servicios Informáticos</GiroEmis>
+        <DirOrigen>Av. Providencia 123</DirOrigen>
+        <CmnaOrigen>Providencia</CmnaOrigen>
+        <CiudadOrigen>Santiago</CiudadOrigen>
+      </Emisor>
+      <Receptor>
+        <RUTRecep>12345678-9</RUTRecep>
+        <RznSocRecep>Cliente Test LTDA</RznSocRecep>
+        <GiroRecep>Comercio</GiroRecep>
+        <DirRecep>Av. Las Condes 456</DirRecep>
+        <CmnaRecep>Las Condes</CmnaRecep>
+        <CiudadRecep>Santiago</CiudadRecep>
+      </Receptor>
+      <Totales>
+        <MntNeto>55000</MntNeto>
+        <TasaIVA>19</TasaIVA>
+        <IVA>10450</IVA>
+        <MntTotal>65450</MntTotal>
+      </Totales>
+    </Encabezado>
+    <Detalle>
+      <NroLinDet>1</NroLinDet>
+      <NmbItem>Desarrollo de Software</NmbItem>
+      <QtyItem>2</QtyItem>
+      <UnmdItem>UN</UnmdItem>
+      <PrcItem>15000</PrcItem>
+      <MontoItem>30000</MontoItem>
+    </Detalle>
+    <Detalle>
+      <NroLinDet>2</NroLinDet>
+      <NmbItem>Consultoría Técnica</NmbItem>
+      <QtyItem>1</QtyItem>
+      <UnmdItem>UN</UnmdItem>
+      <PrcItem>25000</PrcItem>
+      <MontoItem>25000</MontoItem>
+    </Detalle>
+    <TED version="1.0">
+      <DD>
+        <RE>PLACEHOLDER_RUT_EMISOR</RE>
+        <TD>33</TD>
+        <F>9599</F>
+        <FE>2025-08-19</FE>
+        <RR>PLACEHOLDER_RUT_RECEPTOR</RR>
+        <RSR>PLACEHOLDER_RAZON_SOCIAL_RECEPTOR</RSR>
+        <MNT>PLACEHOLDER_MONTO_TOTAL</MNT>
+        <IT1>PLACEHOLDER_ITEM_1</IT1>
+        <CAF>PLACEHOLDER_CAF</CAF>
+        <TSTED>2025-08-19T01:21:32</TSTED>
+      </DD>
+      <FRMT algoritmo="SHA1withRSA">PLACEHOLDER_FIRMA_TED</FRMT>
+    </TED>
+  </Documento>
+</DTE>

@@ -64,3 +64,247 @@
 [2025-08-18 18:53:43] Request: GET /api/certificados
 [2025-08-18 18:53:44] Request: GET /health
 [2025-08-18 18:55:19] Request: POST /api/certificados/upload
+[2025-08-18 19:04:50] Request: GET /api.php/health
+[2025-08-18 19:04:53] Request: GET /api.php/certificados
+[2025-08-18 20:15:46] Request: GET /api.php/api/certificados
+[2025-08-18 21:25:35] Request: GET /api.php/api/certificados
+[2025-08-18 21:28:31] Request: GET /api.php/api/certificados
+[2025-08-18 21:29:28] Request: GET /api.php/api/certificados
+[2025-08-18 21:29:28] Request: GET /favicon.ico
+[2025-08-18 21:29:48] Request: GET /api/certificados
+[2025-08-18 21:29:52] Request: GET /api/certificados
+[2025-08-18 21:30:27] Request: GET /index_basic.php
+[2025-08-18 21:30:35] Request: GET /
+[2025-08-18 21:30:51] Request: GET /certificados
+[2025-08-18 21:35:28] Request: GET /api.php/health
+[2025-08-18 21:38:27] Request: GET /api.php/certificados
+[2025-08-18 21:38:27] Request: GET /api.php/health
+[2025-08-18 21:39:02] Request: POST /api.php/certificados/upload
+[2025-08-18 21:39:02] Error certificados upload: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'emisor_certificado' in 'field list'
+[2025-08-18 21:51:22] [INFO] Request: GET /api.php/health
+[2025-08-18 21:51:57] [INFO] Request: POST /api.php/certificados/upload
+[2025-08-18 21:51:57] [INFO] Iniciando upload de certificado
+[2025-08-18 21:51:57] [WARNING] Error: No se subió archivo de certificado
+[2025-08-18 21:52:45] [INFO] Iniciando upload de certificado
+[2025-08-18 21:52:45] [INFO] Archivo recibido: test_certificate.pfx (162 bytes)
+[2025-08-18 21:52:45] [INFO] Archivo leído correctamente: 162 bytes
+[2025-08-18 21:52:45] [INFO] Conexión a base de datos establecida
+[2025-08-18 21:52:45] [INFO] Datos preparados para inserción: {"nombre":"Certificado de Prueba","rut_empresa":"76543210-9","razon_social":"Empresa de Prueba SPA","fecha_vencimiento":"2027-08-18"}
+[2025-08-18 21:52:45] [INFO] Certificado guardado en BD con ID: 3
+[2025-08-18 21:52:45] [INFO] Archivo físico guardado: C:\xampp\htdocs\donfactura\config/../storage/certificates/cert_3.pfx (162 bytes)
+[2025-08-18 21:52:45] [SUCCESS] Certificado subido exitosamente: ID 3
+[2025-08-18 21:52:49] [INFO] Request: GET /api.php/certificados
+[2025-08-18 22:21:07] [INFO] Request: GET /api.php/certificados
+[2025-08-18 22:21:08] [INFO] Request: GET /api.php/health
+[2025-08-18 22:22:48] [INFO] Request: POST /api.php/certificados/upload
+[2025-08-18 22:22:48] [INFO] Iniciando upload de certificado
+[2025-08-18 22:22:48] [INFO] Archivo recibido: Certificado E-Certchile.pfx (3893 bytes)
+[2025-08-18 22:22:48] [INFO] Archivo leído correctamente: 3893 bytes
+[2025-08-18 22:22:48] [INFO] Conexión a base de datos establecida
+[2025-08-18 22:22:48] [INFO] Datos preparados para inserción: {"nombre":"Jadovi","rut_empresa":"76261644-0","razon_social":"","fecha_vencimiento":null}
+[2025-08-18 22:22:48] [ERROR] Error en upload de certificados - Exception: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'fecha_vencimiento' cannot be null - File: C:\xampp\htdocs\donfactura\public\api.php:225 - Trace: #0 C:\xampp\htdocs\donfactura\public\api.php(225): PDOStatement->execute(Array)
+#1 {main}
+[2025-08-18 22:27:37] [INFO] Request: GET /api.php/certificados
+[2025-08-18 22:27:37] [INFO] Request: GET /api.php/health
+[2025-08-18 22:33:22] [INFO] Request: GET /api.php/certificados
+[2025-08-18 22:33:22] [INFO] Request: GET /api.php/health
+[2025-08-18 22:33:43] [INFO] Request: POST /api.php/certificados/upload
+[2025-08-18 22:33:43] [INFO] Iniciando upload de certificado
+[2025-08-18 22:33:43] [INFO] Archivo recibido: Certificado E-Certchile.pfx (3893 bytes)
+[2025-08-18 22:33:43] [INFO] Archivo leído correctamente: 3893 bytes
+[2025-08-18 22:33:43] [INFO] Conexión a base de datos establecida
+[2025-08-18 22:33:43] [INFO] Datos preparados para inserción: {"nombre":"jadp","rut_empresa":"1-1","razon_social":"","fecha_vencimiento":null}
+[2025-08-18 22:33:43] [ERROR] Error en upload de certificados - Exception: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'fecha_vencimiento' cannot be null - File: C:\xampp\htdocs\donfactura\public\api.php:225 - Trace: #0 C:\xampp\htdocs\donfactura\public\api.php(225): PDOStatement->execute(Array)
+#1 {main}
+[2025-08-18 23:02:10] [INFO] Request: GET /api.php/health
+[2025-08-18 23:03:01] [INFO] Iniciando upload de certificado
+[2025-08-18 23:03:01] [INFO] Archivo recibido: test_certificate.pfx (162 bytes)
+[2025-08-18 23:03:01] [INFO] Archivo leído correctamente: 162 bytes
+[2025-08-18 23:03:01] [INFO] Conexión a base de datos establecida
+[2025-08-18 23:03:01] [INFO] Datos preparados para inserción: {"nombre":"Certificado de Prueba Corregido","rut_empresa":"87654321-0","razon_social":"Empresa de Prueba Corregida SPA","fecha_vencimiento":"2027-08-18"}
+[2025-08-18 23:03:01] [INFO] Certificado guardado en BD con ID: 4
+[2025-08-18 23:03:01] [INFO] Archivo físico guardado: C:\xampp\htdocs\donfactura\config/../storage/certificates/cert_4.pfx (162 bytes)
+[2025-08-18 23:03:01] [SUCCESS] Certificado subido exitosamente: ID 4
+[2025-08-18 23:03:06] [INFO] Request: GET /api.php/certificados
+[2025-08-18 23:08:59] [INFO] Request: GET /api.php/certificados
+[2025-08-18 23:08:59] [INFO] Request: GET /api.php/health
+[2025-08-18 23:09:19] [INFO] Request: POST /api.php/certificados/upload
+[2025-08-18 23:09:19] [INFO] Iniciando upload de certificado
+[2025-08-18 23:09:19] [INFO] Archivo recibido: Certificado E-Certchile.pfx (3893 bytes)
+[2025-08-18 23:09:19] [WARNING] Error: No se proporcionó razón social
+[2025-08-18 23:13:02] [INFO] Request: GET /api.php/certificados
+[2025-08-18 23:13:03] [INFO] Request: GET /api.php/health
+[2025-08-18 23:15:51] [INFO] Request: POST /api.php/certificados/upload
+[2025-08-18 23:15:51] [INFO] Iniciando upload de certificado
+[2025-08-18 23:15:51] [INFO] Archivo recibido: Certificado E-Certchile.pfx (3893 bytes)
+[2025-08-18 23:15:51] [INFO] Archivo leído correctamente: 3893 bytes
+[2025-08-18 23:15:51] [INFO] Conexión a base de datos establecida
+[2025-08-18 23:15:51] [INFO] Datos preparados para inserción: {"nombre":"JADOVI","rut_empresa":"76261644-0","razon_social":"DonosoLabs SpA","fecha_vencimiento":"2027-08-18"}
+[2025-08-18 23:15:51] [INFO] Certificado guardado en BD con ID: 5
+[2025-08-18 23:15:51] [INFO] Archivo físico guardado: C:\xampp\htdocs\donfactura\config/../storage/certificates/cert_5.pfx (3893 bytes)
+[2025-08-18 23:15:51] [SUCCESS] Certificado subido exitosamente: ID 5
+[2025-08-18 23:15:52] [INFO] Request: GET /api.php/certificados
+[2025-08-18 23:23:02] [INFO] Request: POST /api.php/dte/generar
+[2025-08-18 23:23:02] [ERROR] Error DTE generar - Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'dte_sistema.dtes' doesn't exist - File: C:\xampp\htdocs\donfactura\public\api.php:357 - Trace: #0 C:\xampp\htdocs\donfactura\public\api.php(357): PDOStatement->execute(Array)
+#1 {main}
+[2025-08-18 23:29:42] [INFO] Request: POST /api.php/dte/generar
+[2025-08-18 23:29:42] [ERROR] Error DTE generar - Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'dte_sistema.dtes' doesn't exist - File: C:\xampp\htdocs\donfactura\public\api.php:357 - Trace: #0 C:\xampp\htdocs\donfactura\public\api.php(357): PDOStatement->execute(Array)
+#1 {main}
+[2025-08-18 23:44:24] [INFO] Request: GET /
+[2025-08-19 00:05:17] [INFO] Request: GET /api.php/health
+[2025-08-19 00:47:50] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 00:48:22] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 00:48:22] [ERROR] Error DTE generar - Exception: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'dte_sistema.dtes' doesn't exist - File: C:\xampp\htdocs\donfactura\public\api.php:357 - Trace: #0 C:\xampp\htdocs\donfactura\public\api.php(357): PDOStatement->execute(Array)
+#1 {main}
+[2025-08-19 00:57:32] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 00:57:32] [INFO] DTE generado exitosamente: Tipo 33, Folio 4111, ID 4
+[2025-08-19 00:59:29] [INFO] Request: GET /api.php/health
+[2025-08-19 00:59:53] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 00:59:53] [INFO] DTE generado exitosamente: Tipo 33, Folio 3337, ID 5
+[2025-08-19 00:59:57] [INFO] Request: GET /api.php/certificados
+[2025-08-19 01:01:00] [INFO] Request: GET /
+[2025-08-19 01:01:19] [INFO] Request: GET /api.php/certificados
+[2025-08-19 01:01:19] [INFO] Request: GET /api.php/health
+[2025-08-19 01:04:11] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 01:04:11] [INFO] DTE generado exitosamente: Tipo 33, Folio 3244, ID 6
+[2025-08-19 01:04:11] [INFO] Request: GET /api.php/certificados
+[2025-08-19 01:15:15] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 01:20:31] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 01:21:05] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 01:21:21] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 01:21:32] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 01:21:32] [INFO] XML guardado exitosamente: C:\xampp\htdocs\donfactura\config/../storage/xml/dte_33_9599_11.xml (1985 bytes)
+[2025-08-19 01:21:32] [INFO] DTE generado exitosamente: Tipo 33, Folio 9599, ID 11
+[2025-08-19 02:01:46] [INFO] Request: GET /api.php/health
+[2025-08-19 02:08:17] [INFO] Request: GET /api.php/health
+[2025-08-19 02:09:03] [INFO] Request: GET /api.php/health
+[2025-08-19 02:09:03] [INFO] Request: GET /api.php/certificados
+[2025-08-19 02:09:04] [INFO] Request: GET /api.php/bhe-features
+[2025-08-19 02:09:04] [INFO] Request: GET /api.php/pdf-features
+[2025-08-19 02:09:08] [INFO] Request: GET /api.php/certificados
+[2025-08-19 02:09:11] [INFO] Request: GET /api.php/pdf-features
+[2025-08-19 02:09:33] [INFO] Request: GET /api.php/health
+[2025-08-19 02:09:34] [INFO] Request: GET /api.php/certificados
+[2025-08-19 02:09:34] [INFO] Request: GET /api.php/bhe-features
+[2025-08-19 02:09:34] [INFO] Request: GET /api.php/pdf-features
+[2025-08-19 02:09:35] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 02:09:48] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 02:10:47] [INFO] Request: GET /api.php/health
+[2025-08-19 02:10:48] [INFO] Request: GET /api.php/certificados
+[2025-08-19 02:10:48] [INFO] Request: GET /api.php/bhe-features
+[2025-08-19 02:10:49] [INFO] Request: GET /api.php/pdf-features
+[2025-08-19 02:10:49] [INFO] Request: GET /api.php/health
+[2025-08-19 02:10:50] [INFO] Request: GET /api.php/certificados
+[2025-08-19 02:10:50] [INFO] Request: GET /api.php/bhe-features
+[2025-08-19 02:10:51] [INFO] Request: GET /api.php/pdf-features
+[2025-08-19 02:46:52] [INFO] Request: GET /api.php/certificados
+[2025-08-19 02:46:53] [INFO] Request: GET /api.php/health
+[2025-08-19 02:47:01] [INFO] Request: GET /
+[2025-08-19 02:47:09] [INFO] Request: GET /frontend
+[2025-08-19 02:47:19] [INFO] Request: GET /api.php/certificados
+[2025-08-19 02:47:19] [INFO] Request: GET /api.php/health
+[2025-08-19 03:42:44] [INFO] Request: POST /api.php/dte/generar
+[2025-08-19 03:47:37] [INFO] Request: GET /frontend/
+[2025-08-19 05:17:44] [INFO] Request: GET /frontend/
+[2025-08-19 05:17:51] [INFO] Request: GET /
+[2025-08-19 05:17:57] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:17:57] [INFO] Request: GET /api.php/certificados
+[2025-08-19 05:17:57] [INFO] Request: GET /api.php/health
+[2025-08-19 05:18:05] [INFO] Request: GET /api.php/certificados
+[2025-08-19 05:18:05] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:18:05] [INFO] Request: GET /api.php/health
+[2025-08-19 05:18:44] [INFO] Request: GET /api.php/certificados
+[2025-08-19 05:18:45] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:18:45] [INFO] Request: GET /api.php/health
+[2025-08-19 05:21:22] [INFO] Request: GET /api.php/health
+[2025-08-19 05:21:22] [INFO] Request: GET /api.php//certificados
+[2025-08-19 05:21:23] [INFO] Request: POST /api.php//dte/generar
+[2025-08-19 05:21:23] [INFO] Request: GET /api.php//caf/disponibles
+[2025-08-19 05:21:24] [INFO] Request: GET /api.php//bhe-features
+[2025-08-19 05:21:24] [INFO] Request: GET /api.php//pdf-features
+[2025-08-19 05:22:11] [INFO] Request: GET /api.php/health
+[2025-08-19 05:22:11] [INFO] Request: GET /api.php//certificados
+[2025-08-19 05:22:12] [INFO] Request: POST /api.php//dte/generar
+[2025-08-19 05:22:12] [INFO] Request: GET /api.php//caf/disponibles
+[2025-08-19 05:22:13] [INFO] Request: GET /api.php//bhe-features
+[2025-08-19 05:22:13] [INFO] Request: GET /api.php//pdf-features
+[2025-08-19 05:22:14] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:22:18] [INFO] Request: GET /api.php/health
+[2025-08-19 05:22:22] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:22:49] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:22:56] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:23:08] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:23:08] [INFO] Processed path: '/caf/disponibles' from URI: '/api.php/caf/disponibles'
+[2025-08-19 05:23:41] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:23:41] [INFO] Processed path: '/caf/disponibles' from URI: '/api.php/caf/disponibles'
+[2025-08-19 05:24:01] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:24:01] [INFO] Processed path: '/caf/disponibles' from URI: '/api.php/caf/disponibles'
+[2025-08-19 05:24:06] [INFO] Request: GET /api.php/certificados
+[2025-08-19 05:24:06] [INFO] Processed path: '/certificados' from URI: '/api.php/certificados'
+[2025-08-19 05:24:10] [INFO] Request: GET /api.php/health
+[2025-08-19 05:24:10] [INFO] Processed path: '/health' from URI: '/api.php/health'
+[2025-08-19 05:24:11] [INFO] Request: GET /api.php//certificados
+[2025-08-19 05:24:11] [INFO] Processed path: '//certificados' from URI: '/api.php//certificados'
+[2025-08-19 05:24:11] [INFO] Request: POST /api.php//dte/generar
+[2025-08-19 05:24:11] [INFO] Processed path: '//dte/generar' from URI: '/api.php//dte/generar'
+[2025-08-19 05:24:11] [INFO] Request: GET /api.php//caf/disponibles
+[2025-08-19 05:24:11] [INFO] Processed path: '//caf/disponibles' from URI: '/api.php//caf/disponibles'
+[2025-08-19 05:24:12] [INFO] Request: GET /api.php//bhe-features
+[2025-08-19 05:24:12] [INFO] Processed path: '//bhe-features' from URI: '/api.php//bhe-features'
+[2025-08-19 05:24:12] [INFO] Request: GET /api.php//pdf-features
+[2025-08-19 05:24:12] [INFO] Processed path: '//pdf-features' from URI: '/api.php//pdf-features'
+[2025-08-19 05:24:13] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:24:13] [INFO] Processed path: '/caf/disponibles' from URI: '/api.php/caf/disponibles'
+[2025-08-19 05:24:48] [INFO] Request: GET /api.php/health
+[2025-08-19 05:24:48] [INFO] Processed path: '/health' from URI: '/api.php/health'
+[2025-08-19 05:24:49] [INFO] Request: GET /api.php//certificados
+[2025-08-19 05:24:49] [INFO] Processed path: '//certificados' from URI: '/api.php//certificados'
+[2025-08-19 05:24:49] [INFO] Request: POST /api.php//dte/generar
+[2025-08-19 05:24:49] [INFO] Processed path: '//dte/generar' from URI: '/api.php//dte/generar'
+[2025-08-19 05:24:50] [INFO] Request: GET /api.php//caf/disponibles
+[2025-08-19 05:24:50] [INFO] Processed path: '//caf/disponibles' from URI: '/api.php//caf/disponibles'
+[2025-08-19 05:24:50] [INFO] Request: GET /api.php//bhe-features
+[2025-08-19 05:24:50] [INFO] Processed path: '//bhe-features' from URI: '/api.php//bhe-features'
+[2025-08-19 05:24:51] [INFO] Request: GET /api.php//pdf-features
+[2025-08-19 05:24:51] [INFO] Processed path: '//pdf-features' from URI: '/api.php//pdf-features'
+[2025-08-19 05:24:51] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:24:51] [INFO] Processed path: '/caf/disponibles' from URI: '/api.php/caf/disponibles'
+[2025-08-19 05:27:11] [INFO] Request: GET /api.php/certificados
+[2025-08-19 05:27:12] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:27:12] [INFO] Request: GET /api.php/health
+[2025-08-19 05:27:21] [INFO] Request: GET /api.php/certificados
+[2025-08-19 05:27:21] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:27:21] [INFO] Request: GET /api.php/health
+[2025-08-19 05:27:24] [INFO] Request: GET /api.php/certificados
+[2025-08-19 05:27:25] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:27:25] [INFO] Request: GET /api.php/health
+[2025-08-19 05:39:15] [INFO] Request: POST /api.php/dte/1/firmar
+[2025-08-19 05:39:15] [INFO] Firmando DTE ID: 1
+[2025-08-19 05:39:23] [INFO] Request: GET /api.php/dte/1/estado-sii
+[2025-08-19 05:39:23] [INFO] Consultando estado SII para DTE ID: 1
+[2025-08-19 05:39:23] [ERROR] Error consultando estado SII - Exception: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'fecha_actualizacion_sii' in 'field list' - File: C:\xampp\htdocs\donfactura\public\api.php:895 - Trace: #0 C:\xampp\htdocs\donfactura\public\api.php(895): PDOStatement->execute(Array)
+#1 {main}
+[2025-08-19 05:40:26] [INFO] Request: POST /api.php/dte/1/pdf
+[2025-08-19 05:40:26] [INFO] Generando PDF para DTE ID: 1, Formato: 80mm
+[2025-08-19 05:40:33] [INFO] Request: POST /api.php/dte/1/pdf
+[2025-08-19 05:40:33] [INFO] Generando PDF para DTE ID: 1, Formato: carta
+[2025-08-19 05:40:36] [INFO] Request: GET /api.php/dte/1/qr
+[2025-08-19 05:40:36] [INFO] Generando QR para DTE ID: 1
+[2025-08-19 05:40:54] [INFO] Request: POST /api.php/dte/1/firmar
+[2025-08-19 05:40:54] [INFO] Firmando DTE ID: 1
+[2025-08-19 05:41:15] [INFO] Request: GET /api.php/dte/2/estado-sii
+[2025-08-19 05:41:15] [INFO] Consultando estado SII para DTE ID: 2
+[2025-08-19 05:41:20] [INFO] Request: POST /api.php/dte/2/enviar-sii
+[2025-08-19 05:41:20] [INFO] Enviando DTE al SII - ID: 2
+[2025-08-19 05:41:59] [INFO] Request: POST /api.php/caf/solicitar
+[2025-08-19 05:41:59] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:42:29] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:42:34] [INFO] Request: POST /api.php/caf/verificar-estado
+[2025-08-19 05:42:34] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:43:15] [INFO] Request: POST /api.php/caf/verificar-estado
+[2025-08-19 05:43:15] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 05:43:57] [INFO] Request: POST /api.php/caf/solicitar
+[2025-08-19 05:43:57] [INFO] Request: GET /api.php/caf/disponibles
+[2025-08-19 10:24:04] [INFO] Request: GET /favicon.ico
+[2025-08-20T05:43:47.217332+02:00] dte-api.INFO: Request received {"method":"GET","uri":"https://localhost/donfactura/public/","headers":{"Host":["localhost"],"Connection":["keep-alive"],"Cache-Control":["max-age=0"],"Upgrade-Insecure-Requests":["1"],"User-Agent":["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36 Edg/139.0.0.0"],"Accept":["text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"],"Sec-Fetch-Site":["none"],"Sec-Fetch-Mode":["navigate"],"Sec-Fetch-User":["?1"],"Sec-Fetch-Dest":["document"],"sec-ch-ua":["\"Not;A=Brand\";v=\"99\", \"Microsoft Edge\";v=\"139\", \"Chromium\";v=\"139\""],"sec-ch-ua-mobile":["?0"],"sec-ch-ua-platform":["\"Windows\""],"Accept-Encoding":["gzip, deflate, br, zstd"],"Accept-Language":["es,en-US;q=0.9,en;q=0.8,pt;q=0.7,es-CL;q=0.6,es-ES;q=0.5"],"Cookie":["PHPSESSID=ho5jf4083cftlso6ifomujset8"]}} []
+[2025-08-20T05:43:47.251648+02:00] dte-api.ERROR: 404 Not Found Type: Slim\Exception\HttpNotFoundException Code: 404 Message: Not found. File: C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\Middleware\RoutingMiddleware.php Line: 76 Trace: #0 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\Routing\RouteRunner.php(62): Slim\Middleware\RoutingMiddleware->performRouting(Object(Slim\Psr7\Request)) #1 C:\xampp\htdocs\donfactura\src\Middleware\CorsMiddleware.php(19): Slim\Routing\RouteRunner->handle(Object(Slim\Psr7\Request)) #2 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\MiddlewareDispatcher.php(129): DonFactura\DTE\Middleware\CorsMiddleware->process(Object(Slim\Psr7\Request), Object(Slim\Routing\RouteRunner)) #3 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\Middleware\ContentLengthMiddleware.php(23): Psr\Http\Server\RequestHandlerInterface@anonymous->handle(Object(Slim\Psr7\Request)) #4 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\MiddlewareDispatcher.php(129): Slim\Middleware\ContentLengthMiddleware->process(Object(Slim\Psr7\Request), Object(Psr\Http\Server\RequestHandlerInterface@anonymous)) #5 C:\xampp\htdocs\donfactura\src\Middleware\ValidationMiddleware.php(52): Psr\Http\Server\RequestHandlerInterface@anonymous->handle(Object(Slim\Psr7\Request)) #6 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\MiddlewareDispatcher.php(129): DonFactura\DTE\Middleware\ValidationMiddleware->process(Object(Slim\Psr7\Request), Object(Psr\Http\Server\RequestHandlerInterface@anonymous)) #7 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\Middleware\BodyParsingMiddleware.php(65): Psr\Http\Server\RequestHandlerInterface@anonymous->handle(Object(Slim\Psr7\Request)) #8 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\MiddlewareDispatcher.php(129): Slim\Middleware\BodyParsingMiddleware->process(Object(Slim\Psr7\Request), Object(Psr\Http\Server\RequestHandlerInterface@anonymous)) #9 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\Middleware\ErrorMiddleware.php(77): Psr\Http\Server\RequestHandlerInterface@anonymous->handle(Object(Slim\Psr7\Request)) #10 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\MiddlewareDispatcher.php(129): Slim\Middleware\ErrorMiddleware->process(Object(Slim\Psr7\Request), Object(Psr\Http\Server\RequestHandlerInterface@anonymous)) #11 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\MiddlewareDispatcher.php(73): Psr\Http\Server\RequestHandlerInterface@anonymous->handle(Object(Slim\Psr7\Request)) #12 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\App.php(209): Slim\MiddlewareDispatcher->handle(Object(Slim\Psr7\Request)) #13 C:\xampp\htdocs\donfactura\vendor\slim\slim\Slim\App.php(193): Slim\App->handle(Object(Slim\Psr7\Request)) #14 C:\xampp\htdocs\donfactura\public\index.php(146): Slim\App->run() #15 {main} [] []
