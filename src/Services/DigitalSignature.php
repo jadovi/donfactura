@@ -161,8 +161,8 @@ class DigitalSignature
         // Obtener primer item para el TED
         $primerItem = $xpath->query('//Detalle[1]/NmbItem')->item(0)?->nodeValue ?? 'Producto/Servicio';
 
-        // Obtener datos CAF (simulado por ahora)
-        $cafData = $this->obtenerDatosCAF($tipoDte, $rutEmisor, $folio);
+        // Obtener datos CAF desde base de datos si están disponibles
+        $cafXml = $this->obtenerDatosCAF($tipoDte, $rutEmisor, $folio);
 
         // Actualizar placeholders en TED
         $tedElements = $xpath->query('//TED/DD/*');
@@ -193,7 +193,31 @@ class DigitalSignature
                     $element->nodeValue = substr($primerItem, 0, 40); // Máximo 40 caracteres
                     break;
                 case 'CAF':
-                    $element->nodeValue = $cafData;
+                    // Reemplazar contenido del CAF con el XML real cuando exista
+                    while ($element->firstChild) {
+                        $element->removeChild($element->firstChild);
+                    }
+
+                    if ($cafXml) {
+                        $cafDoc = new DOMDocument();
+                        $cafDoc->preserveWhiteSpace = false;
+                        $cafDoc->formatOutput = false;
+
+                        if (@$cafDoc->loadXML($cafXml)) {
+                            $cafNode = $cafDoc->getElementsByTagName('CAF')->item(0);
+                            if ($cafNode) {
+                                foreach ($cafNode->childNodes as $child) {
+                                    $element->appendChild($xmlDoc->importNode($child, true));
+                                }
+                            } else {
+                                $element->nodeValue = 'CAF_NOT_FOUND';
+                            }
+                        } else {
+                            $element->nodeValue = 'CAF_XML_INVALID';
+                        }
+                    } else {
+                        $element->nodeValue = 'CAF_NO_DISPONIBLE';
+                    }
                     break;
                 case 'TSTED':
                     $element->nodeValue = date('Y-m-d\TH:i:s');
@@ -214,11 +238,33 @@ class DigitalSignature
         }
     }
 
-    private function obtenerDatosCAF(string $tipoDte, string $rutEmisor, string $folio): string
+    private function obtenerDatosCAF(string $tipoDte, string $rutEmisor, string $folio): ?string
     {
-        // Aquí deberías obtener el CAF real desde la base de datos
-        // Por ahora retornamos un placeholder
-        return "CAF_PLACEHOLDER_FOR_TYPE_{$tipoDte}_FOLIO_{$folio}";
+        if (!isset($this->pdo)) {
+            return null;
+        }
+
+        $stmt = $this->pdo->prepare('
+            SELECT xml_caf
+            FROM caf_folios
+            WHERE tipo_dte = ?
+              AND rut_emisor = ?
+              AND folio_desde <= ?
+              AND folio_hasta >= ?
+              AND estado = "activo"
+              AND fecha_vencimiento >= CURDATE()
+            ORDER BY id DESC
+            LIMIT 1
+        ');
+
+        $stmt->execute([$tipoDte, $rutEmisor, $folio, $folio]);
+        $caf = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$caf || empty($caf['xml_caf'])) {
+            return null;
+        }
+
+        return $caf['xml_caf'];
     }
 
     private function generarFirmaTED(string $ddString, string $rutEmisor): string

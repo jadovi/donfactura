@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace DonFactura\DTE\Services;
 
 use DonFactura\DTE\Models\CertificadosModel;
+use RobRichards\XMLSecLibs\XMLSecurityDSig;
+use RobRichards\XMLSecLibs\XMLSecurityKey;
+use DOMDocument;
 use PDO;
 
 /**
@@ -237,9 +240,37 @@ class SIIService
 
     private function firmarSolicitud(string $xml, array $certificado): string
     {
-        // TODO: Implementar firma real usando XMLSecLibs
-        // Por ahora retornamos el XML sin firmar
-        return $xml;
+        // Firmar XML con XMLSecLibs
+        $certs = [];
+        if (!openssl_pkcs12_read($certificado['archivo_pfx'], $certs, $certificado['password_pfx'])) {
+            throw new \Exception("Error al leer el certificado PFX");
+        }
+
+        $xmlDoc = new DOMDocument();
+        $xmlDoc->loadXML($xml);
+        $xmlDoc->formatOutput = false;
+        $xmlDoc->preserveWhiteSpace = true;
+
+        $objDSig = new XMLSecurityDSig();
+        $objDSig->setCanonicalMethod(XMLSecurityDSig::EXC_C14N);
+        $objDSig->addReference(
+            $xmlDoc->documentElement,
+            XMLSecurityDSig::SHA1,
+            [
+                'http://www.w3.org/2000/09/xmldsig#enveloped-signature',
+                XMLSecurityDSig::EXC_C14N
+            ],
+            ['overwrite' => false]
+        );
+
+        $objKey = new XMLSecurityKey(XMLSecurityKey::RSA_SHA1, ['type' => 'private']);
+        $objKey->loadKey($certs['pkey']);
+
+        $objDSig->sign($objKey);
+        $objDSig->add509Cert($certs['cert']);
+        $objDSig->insertSignature($xmlDoc->documentElement);
+
+        return $xmlDoc->saveXML();
     }
 
     private function firmarSemilla(string $semilla, array $certificado): string

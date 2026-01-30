@@ -344,8 +344,16 @@ switch (true) {
             
             $pdo = getDatabase();
             
-            // Obtener siguiente folio (simular por ahora)
-            $folio = rand(1000, 9999);
+            // Obtener siguiente folio desde CAF
+            require_once __DIR__ . '/../vendor/autoload.php';
+            $cafService = new \DonFactura\DTE\Services\CAFService($config, $pdo);
+            $folioResult = $cafService->obtenerSiguienteFolio((int)$data['tipo_dte'], $data['emisor']['rut']);
+            if (!$folioResult['success']) {
+                jsonResponse(['success' => false, 'error' => $folioResult['error']], 400);
+            }
+
+            $folio = (int)$folioResult['data']['folio'];
+            $cafId = (int)$folioResult['data']['caf_id'];
             
             // Calcular totales
             $montoNeto = 0;
@@ -367,7 +375,7 @@ switch (true) {
             
             // Calcular IVA (19% para tipos de DTE que lo requieren)
             $montoIVA = 0;
-            if (in_array($data['tipo_dte'], [33, 34, 56, 61])) { // Tipos que llevan IVA
+            if (in_array($data['tipo_dte'], [33, 34, 52, 56, 61])) { // Tipos que llevan IVA
                 $montoIVA = $montoNeto * 0.19;
             }
             
@@ -375,13 +383,14 @@ switch (true) {
             
             // Guardar DTE
             $stmt = $pdo->prepare('
-                INSERT INTO documentos_dte (tipo_dte, folio, fecha_emision, rut_emisor, razon_social_emisor, rut_receptor, razon_social_receptor, monto_neto, monto_iva, monto_total, observaciones, estado, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                INSERT INTO documentos_dte (tipo_dte, folio, caf_id, fecha_emision, rut_emisor, razon_social_emisor, rut_receptor, razon_social_receptor, monto_neto, monto_iva, monto_total, observaciones, estado, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
             ');
             
             $stmt->execute([
                 $data['tipo_dte'],
                 $folio,
+                $cafId,
                 $data['fecha_emision'] ?? date('Y-m-d'),
                 $data['emisor']['rut'],
                 $data['emisor']['razon_social'] ?? '',
@@ -395,6 +404,19 @@ switch (true) {
             ]);
             
             $dteId = $pdo->lastInsertId();
+
+            // Marcar folio como usado en CAF
+            $asignacionResult = $cafService->asignarFolio(
+                $cafId,
+                $folio,
+                (int)$dteId,
+                (int)$data['tipo_dte'],
+                $data['emisor']['rut']
+            );
+            if (!$asignacionResult['success']) {
+                logError('Error asignando folio CAF', new Exception($asignacionResult['error']));
+                jsonResponse(['success' => false, 'error' => $asignacionResult['error']], 400);
+            }
             
             // Guardar detalles
             foreach ($data['detalles'] as $detalle) {
@@ -418,11 +440,10 @@ switch (true) {
             // GENERAR XML DEL DTE
             try {
                 // Cargar el generador de XML
-                require_once __DIR__ . '/../vendor/autoload.php';
                 $xmlGenerator = new \DonFactura\DTE\Services\DTEXMLGenerator($config);
                 
                 // Generar XML
-                $xmlContent = $xmlGenerator->generar((int)$data['tipo_dte'], $data, $folio);
+                $xmlContent = $xmlGenerator->generar((int)$data['tipo_dte'], $data, $folio, $cafId);
                 
                 // Guardar XML en archivo
                 $xmlFileName = "dte_{$data['tipo_dte']}_{$folio}_{$dteId}.xml";

@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace DonFactura\DTE\Services;
 
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelM;
+use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeMargin;
+use Endroid\QrCode\Color\Color;
+
 /**
  * Generador de códigos QR para documentos DTE
  * Implementa especificaciones del SII para códigos de barras 2D
@@ -12,16 +19,26 @@ class QRCodeGenerator
 {
     public function generarQR(string $data): string
     {
-        // Generar código QR usando biblioteca interna simple
-        // Formato: BASE64 de imagen PNG
-        
-        // Por ahora simulamos con un placeholder
-        // En implementación real usar: endroid/qr-code o similar
-        
-        $qrSize = 200;
-        $qrImage = $this->crearImagenQRSimple($data, $qrSize);
-        
-        return base64_encode($qrImage);
+        try {
+            $qrCode = QrCode::create($data)
+                ->setEncoding(new Encoding('UTF-8'))
+                ->setErrorCorrectionLevel(new ErrorCorrectionLevelM())
+                ->setSize(200)
+                ->setMargin(1)
+                ->setRoundBlockSizeMode(new RoundBlockSizeModeMargin())
+                ->setForegroundColor(new Color(0, 0, 0))
+                ->setBackgroundColor(new Color(255, 255, 255));
+
+            $writer = new PngWriter();
+            $result = $writer->write($qrCode);
+
+            return base64_encode($result->getString());
+        } catch (\Throwable $e) {
+            // Fallback a generador simple si falla la librería
+            $qrSize = 200;
+            $qrImage = $this->crearImagenQRSimple($data, $qrSize);
+            return base64_encode($qrImage);
+        }
     }
 
     public function generarQRParaDTE(array $dte): string
@@ -135,7 +152,7 @@ class QRCodeGenerator
         }
         
         // Validar tipo DTE
-        if (!in_array($tipoDte, ['33', '34', '39', '45', '56', '61'])) {
+        if (!in_array($tipoDte, ['33', '34', '39', '41', '45', '56', '61'])) {
             return false;
         }
         

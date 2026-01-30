@@ -28,6 +28,8 @@ class DTEXMLGenerator
                 return $this->generarFacturaExenta($data, $folio);
             case 39:
                 return $this->generarBoletaElectronica($data, $folio);
+            case 52:
+                return $this->generarGuiaDespacho($data, $folio);
             case 45:
                 return $this->generarFacturaCompra($data, $folio);
             case 56:
@@ -37,6 +39,33 @@ class DTEXMLGenerator
             default:
                 throw new \InvalidArgumentException("Tipo de DTE no soportado: {$tipoDte}");
         }
+    }
+
+    private function generarGuiaDespacho(array $data, int $folio): string
+    {
+        $xml = new DOMDocument('1.0', 'ISO-8859-1');
+        $xml->formatOutput = true;
+
+        $dte = $xml->createElement('DTE');
+        $dte->setAttribute('version', '1.0');
+        $xml->appendChild($dte);
+
+        $documento = $xml->createElement('Documento');
+        $documento->setAttribute('ID', "GD{$folio}T52");
+        $dte->appendChild($documento);
+
+        $encabezado = $this->crearEncabezadoGuiaDespacho($xml, $data, $folio);
+        $documento->appendChild($encabezado);
+
+        $detalles = $this->crearDetalles($xml, $data['detalles'] ?? []);
+        foreach ($detalles as $detalle) {
+            $documento->appendChild($detalle);
+        }
+
+        $ted = $this->crearTEDPlaceholder($xml, $folio, 52);
+        $documento->appendChild($ted);
+
+        return $xml->saveXML();
     }
 
     private function generarFacturaElectronica(array $data, int $folio): string
@@ -329,6 +358,34 @@ class DTEXMLGenerator
         $encabezado->appendChild($receptor);
 
         // Totales
+        $totales = $this->crearTotales($xml, $data);
+        $encabezado->appendChild($totales);
+
+        return $encabezado;
+    }
+
+    private function crearEncabezadoGuiaDespacho(DOMDocument $xml, array $data, int $folio): \DOMElement
+    {
+        $encabezado = $xml->createElement('Encabezado');
+
+        $guiaData = $data['guia'] ?? [];
+
+        $idDoc = $xml->createElement('IdDoc');
+        $idDoc->appendChild($xml->createElement('TipoDTE', '52'));
+        $idDoc->appendChild($xml->createElement('Folio', (string)$folio));
+        $idDoc->appendChild($xml->createElement('FchEmis', $data['fecha_emision'] ?? date('Y-m-d')));
+
+        $idDoc->appendChild($xml->createElement('TipoDespacho', (string)($guiaData['tipo_despacho'] ?? 1)));
+        $idDoc->appendChild($xml->createElement('IndTraslado', (string)($guiaData['ind_traslado'] ?? 1)));
+
+        $encabezado->appendChild($idDoc);
+
+        $emisor = $this->crearEmisor($xml, $data['emisor']);
+        $encabezado->appendChild($emisor);
+
+        $receptor = $this->crearReceptor($xml, $data['receptor']);
+        $encabezado->appendChild($receptor);
+
         $totales = $this->crearTotales($xml, $data);
         $encabezado->appendChild($totales);
 

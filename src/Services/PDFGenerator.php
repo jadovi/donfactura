@@ -6,6 +6,7 @@ namespace DonFactura\DTE\Services;
 
 use DonFactura\DTE\Models\DTEModel;
 use DonFactura\DTE\Models\EmpresasConfigModel;
+use Mpdf\Mpdf;
 use PDO;
 
 /**
@@ -610,69 +611,34 @@ class PDFGenerator
 
     private function convertirHTMLaPDF(string $html, string $formato, ?array $empresaConfig): string
     {
-        // Por ahora generar un PDF simple con contenido HTML
-        // En implementación real usar mPDF o Dompdf
-        
-        // Crear un PDF básico con el HTML como contenido
-        $pdfContent = "%PDF-1.4\n";
-        $pdfContent .= "1 0 obj\n";
-        $pdfContent .= "<<\n";
-        $pdfContent .= "/Type /Catalog\n";
-        $pdfContent .= "/Pages 2 0 R\n";
-        $pdfContent .= ">>\n";
-        $pdfContent .= "endobj\n";
-        
-        $pdfContent .= "2 0 obj\n";
-        $pdfContent .= "<<\n";
-        $pdfContent .= "/Type /Pages\n";
-        $pdfContent .= "/Kids [3 0 R]\n";
-        $pdfContent .= "/Count 1\n";
-        $pdfContent .= ">>\n";
-        $pdfContent .= "endobj\n";
-        
-        // Convertir HTML a texto simple para el PDF
-        $textoSimple = strip_tags($html);
-        $textoSimple = str_replace(['&nbsp;', '&amp;', '&lt;', '&gt;'], [' ', '&', '<', '>'], $textoSimple);
-        
-        $pdfContent .= "3 0 obj\n";
-        $pdfContent .= "<<\n";
-        $pdfContent .= "/Type /Page\n";
-        $pdfContent .= "/Parent 2 0 R\n";
-        $pdfContent .= "/MediaBox [0 0 612 792]\n";
-        $pdfContent .= "/Contents 4 0 R\n";
-        $pdfContent .= ">>\n";
-        $pdfContent .= "endobj\n";
-        
-        $pdfContent .= "4 0 obj\n";
-        $pdfContent .= "<<\n";
-        $pdfContent .= "/Length " . (strlen($textoSimple) + 50) . "\n";
-        $pdfContent .= ">>\n";
-        $pdfContent .= "stream\n";
-        $pdfContent .= "BT\n";
-        $pdfContent .= "/F1 12 Tf\n";
-        $pdfContent .= "72 720 Td\n";
-        $pdfContent .= "(" . addslashes($textoSimple) . ") Tj\n";
-        $pdfContent .= "ET\n";
-        $pdfContent .= "endstream\n";
-        $pdfContent .= "endobj\n";
-        
-        $pdfContent .= "xref\n";
-        $pdfContent .= "0 5\n";
-        $pdfContent .= "0000000000 65535 f \n";
-        $pdfContent .= "0000000009 00000 n \n";
-        $pdfContent .= "0000000058 00000 n \n";
-        $pdfContent .= "0000000115 00000 n \n";
-        $pdfContent .= "0000000204 00000 n \n";
-        $pdfContent .= "trailer\n";
-        $pdfContent .= "<<\n";
-        $pdfContent .= "/Size 5\n";
-        $pdfContent .= "/Root 1 0 R\n";
-        $pdfContent .= ">>\n";
-        $pdfContent .= "startxref\n";
-        $pdfContent .= "0000000000\n";
-        $pdfContent .= "%%EOF\n";
-        
-        return $pdfContent;
+        $tempDir = $this->config['paths']['xml_temp'] ?? sys_get_temp_dir();
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $mpdfConfig = [
+            'mode' => 'utf-8',
+            'tempDir' => $tempDir,
+        ];
+
+        if ($formato === '80mm') {
+            $mpdfConfig['format'] = [80, 200];
+            $mpdfConfig['margin_left'] = 4;
+            $mpdfConfig['margin_right'] = 4;
+            $mpdfConfig['margin_top'] = 4;
+            $mpdfConfig['margin_bottom'] = 4;
+        } else {
+            $mpdfConfig['format'] = 'Letter';
+            $mpdfConfig['margin_left'] = 10;
+            $mpdfConfig['margin_right'] = 10;
+            $mpdfConfig['margin_top'] = 10;
+            $mpdfConfig['margin_bottom'] = 10;
+        }
+
+        $mpdf = new Mpdf($mpdfConfig);
+        $mpdf->WriteHTML($html);
+
+        return $mpdf->Output('', 'S');
     }
 
     private function guardarPDF(int $dteId, string $formato, string $contenido, string $codigoQR): int
